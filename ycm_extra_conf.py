@@ -2,6 +2,6 @@
 
 def FlagsForFile(filename, **kwargs):
   return {
-    'flags': [''],
+    'flags': ['-std=c++11'],
     'do_cache': True
   }
