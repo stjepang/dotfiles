@@ -1,7 +1,7 @@
 # Basic environment variables.
 export HISTSIZE=100000
 export HISTFILESIZE=100000
-export EDITOR=vi
+export EDITOR=vim
 
 # Basic aliases.
 alias ls='ls --color=auto'
@@ -21,7 +21,7 @@ export PS1='\
 # Returns zero if the command exists.
 is_cmd() { type "$1" &> /dev/null; }
 
-# Make aliases work with sudo.
+# Let aliases work with sudo.
 is_cmd sudo && alias sudo='sudo '
 
 # Configure ssh-agent.
@@ -46,6 +46,15 @@ if is_cmd docker && is_cmd sudo; then
   if is_cmd _completion_loader; then
     _completion_loader docker
     complete -o default -o nospace -F _docker d
+  fi
+fi
+
+# Docker-compose/fig alias.
+if is_cmd docker-compose && is_cmd sudo; then
+  alias fig='sudo docker-compose'
+  if is_cmd _completion_loader; then
+    _completion_loader docker-compose
+    complete -o default -o nospace -F _docker_compose fig
   fi
 fi
 
