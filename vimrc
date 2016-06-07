@@ -55,10 +55,12 @@ au! BufNewFile,BufWinEnter quickfix
   \ | nnoremap <silent><buffer> q :cclose<CR>
 
 " Opening a new line after a comment doesn't start a new comment.
-au! BufNewFile,BufWinEnter * setl formatoptions-=o
+au! BufNewFile,BufWinEnter *
+  \ setl formatoptions-=o
 
 " Key q quits netrw.
-au! FileType netrw noremap <buffer><nowait> q :bd<CR>
+au! FileType netrw
+  \ noremap <buffer><nowait> q :bd<CR>
 
 " Opening files using external app.
 let g:netrw_browsex_viewer = 'xdg-open'
@@ -133,7 +135,8 @@ let base16colorspace = 256
 
 " Git commands.
 Plug 'tpope/vim-fugitive'
-au! FileType gitcommit setl cursorline
+au! FileType gitcommit
+  \ setl cursorline
 
 " Asynchronous building.
 Plug 'tpope/vim-dispatch'
@@ -143,6 +146,7 @@ nnoremap <silent> <space>q :Copen<CR>
 " Automatically current working directory.
 Plug 'airblade/vim-rooter'
 let g:rooter_patterns = ['.root', '.git/', '_darcs/', '.hg/', '.bzr/', '.svn/']
+let g:rooter_silent_chdir = 1
 
 " C-p after pasting goes through yank history.
 Plug 'vim-scripts/YankRing.vim'
@@ -242,10 +246,11 @@ let g:gutentags_exclude = ['*CMakeFiles*', '.ycm_extra_conf.py']
 Plug 'Valloric/YouCompleteMe', { 'on': [] } " Don't load plugin on startup.
 augroup load_ycm
   " Load plugin when entering insert mode.
-  au! InsertEnter * call plug#load('YouCompleteMe')
-                \ | call youcompleteme#Enable()
-                \ | setl formatoptions-=o
-                \ | au! load_ycm
+  au! InsertEnter *
+    \   call plug#load('YouCompleteMe')
+    \ | call youcompleteme#Enable()
+    \ | setl formatoptions-=o
+    \ | au! load_ycm
 augroup END
 let g:ycm_confirm_extra_conf = 0
 let g:ycm_show_diagnostics_ui = 0
@@ -266,19 +271,25 @@ let g:tagbar_type_rust = {
   \               's:structs', 't:traits', 'i:impls', 'f:functions' ]
   \ }
 
+" C++ language.
+au! FileType c,cpp
+  \ setl shiftwidth=4 tabstop=4
+
 " C++ highlighting.
 Plug 'octol/vim-cpp-enhanced-highlight'
 set cinoptions+=g1 " Indent scope declarations by 1 space.
 set cinoptions+=h1 " Indent stuff after scope declarations by 1 more space.
-au! FileType c,cpp setl shiftwidth=4 tabstop=4
 
 " Conveniences for programming contests.
 au! FileType cpp
-  \|  if expand('%:p') =~ 'code/contests'
-  \|   set makeprg=clang++\ -std=c++11\ -O2\ -Wall\ -o\ %:r\ %
-  \|   map <buffer> <CR> :w\|Make<CR>
-  \|   map <silent> <space>\ VimuxPromptCommand("./" . expand("%:r"))<CR>
-  \| endif
+  \   if expand('%:p') =~ '/contests/'
+  \ |   set makeprg=clang++\ -std=c++11\ -O2\ -Wall\ -o\ %:r\ %
+  \ |   map <buffer> <CR> :w\|Make<CR>
+  \ |   map <silent> <space>\ VimuxPromptCommand("./" . expand("%:r"))<CR>
+  \ | endif
+
+" Java language.
+let g:EclimCompletionMethod = 'omnifunc'
 
 call plug#end()
 
