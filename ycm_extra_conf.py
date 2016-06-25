@@ -1,4 +1,4 @@
-# Default YCM configuration.
+# Default YCM configuration
 
 def FlagsForFile(filename, **kwargs):
   return {

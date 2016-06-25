@@ -1,9 +1,9 @@
-# Basic environment variables.
+# Basic environment variables
 export HISTSIZE=100000
 export HISTFILESIZE=100000
 export EDITOR=vim
 
-# Basic aliases.
+# Basic aliases
 alias ls='ls --color=auto'
 alias ll='ls -l'
 alias la='ls -la'
@@ -11,7 +11,7 @@ alias rm='rm -I'
 alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
 
-# Command line format.
+# Command line format
 ps1_branch() { git symbolic-ref --short HEAD 2> /dev/null; }
 export PS1='\
 \[\e[1;34m\]\W\[\e[m\]\
@@ -24,14 +24,15 @@ is_cmd() { type "$1" &> /dev/null; }
 # Let aliases work with sudo.
 is_cmd sudo && alias sudo='sudo '
 
-# Configure ssh-agent.
+# Configure ssh-agent
 if is_cmd ssh-agent; then
   pgrep -u $USER ssh-agent > /dev/null || ssh-agent > ~/.ssh-agent-thing
   [[ "$SSH_AGENT_PID" == "" ]] && eval $(<~/.ssh-agent-thing) > /dev/null
   ssh-add -l >/dev/null || alias ssh='ssh-add -l >/dev/null || ssh-add && unalias ssh; ssh'
 fi
 
-# Git alias.
+# Git alias
+# TODO: Add gitconfig (glog command and default pull --rebase)
 if is_cmd git; then
   alias g='git'
   if is_cmd _completion_loader; then
@@ -40,7 +41,7 @@ if is_cmd git; then
   fi
 fi
 
-# Docker alias.
+# Docker alias
 if is_cmd docker && is_cmd sudo; then
   alias d='sudo docker'
   if is_cmd _completion_loader; then
@@ -49,7 +50,7 @@ if is_cmd docker && is_cmd sudo; then
   fi
 fi
 
-# Docker-compose/fig alias.
+# Docker-compose/fig alias
 if is_cmd docker-compose && is_cmd sudo; then
   alias fig='sudo docker-compose'
   if is_cmd _completion_loader; then
@@ -58,7 +59,7 @@ if is_cmd docker-compose && is_cmd sudo; then
   fi
 fi
 
-# Change directory using ranger.
+# Change directory using ranger
 if is_cmd ranger; then
   ranger-cd() {
     /usr/bin/ranger --choosedir=/tmp/chosendir "$PWD"
@@ -68,7 +69,7 @@ if is_cmd ranger; then
   bind '"\C-o":"\C-u\C-a\C-kranger-cd\C-m"'
 fi
 
-# Set up fzf.
+# Set up fzf
 if source ~/.fzf.bash 2> /dev/null; then
   export FZF_TMUX=0
   export FZF_DEFAULT_OPTS='-e'
