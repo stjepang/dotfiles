@@ -21,27 +21,15 @@ $(\
 )\[\e[m\] \
 \[\e[1;32m\]\$\[\e[m\] '
 
-# Makes completion work with aliases
-set_complete() {
-  if type "_completion_loader" &> /dev/null; then
-    _completion_loader "$2"
-    complete -o default -o nospace -F "$3" "$1"
-  fi
-}
-
 # Let aliases work with sudo
 alias sudo='sudo '
 
 # Git alias
 alias g='git'
-set_complete g git _git
-
-# Docker alias
-alias d='sudo docker'
-set_complete d docker _docker
-
-# Docker-compose/fig alias
-alias fig='sudo docker-compose'
+if type "_completion_loader" &> /dev/null; then
+  _completion_loader git
+  complete -o default -o nospace -F _git g
+fi
 
 # Change directory using ranger
 ranger-cd() {
@@ -51,6 +39,6 @@ ranger-cd() {
 }
 bind '"\C-o":"\C-u\C-a\C-kranger-cd\C-m"'
 
-# Configure fzf
+# FZF options
 export FZF_TMUX=0
 export FZF_DEFAULT_OPTS='-e'

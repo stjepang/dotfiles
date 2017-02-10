@@ -1,7 +1,5 @@
 [user]
 	name = Stjepan Glavina
-[core]
-	excludesfile = ~/dotfiles/gitignore
 [alias]
 	glog = log --graph --decorate --oneline --all
 [push]
