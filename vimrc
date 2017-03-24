@@ -252,6 +252,7 @@ let g:rooter_silent_chdir = 1
 " Yank history (use C-p/C-n after pasting)
 Plug 'vim-scripts/YankRing.vim'
 let g:yankring_history_dir = '~/.vim'
+let g:yankring_replace_n_nkey = ''
 
 " Automatic :nohl command
 Plug 'pgdouyon/vim-evanesco'
