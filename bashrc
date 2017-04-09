@@ -42,3 +42,4 @@ bind '"\C-o":"\C-u\C-a\C-kranger-cd\C-m"'
 # FZF options
 export FZF_TMUX=0
 export FZF_DEFAULT_OPTS='-e'
+export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow --glob "!.git/*"'
