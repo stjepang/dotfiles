@@ -288,17 +288,32 @@ nnoremap <silent> <space>h :History<CR>
 nnoremap <silent> <space>; :Commands<CR>
 nnoremap <silent> <space>: :Commands<CR>
 
+" Real-time linting
+Plug 'w0rp/ale'
+let g:ale_lint_on_text_changed = 'never'
+let g:ale_lint_on_enter = 0
+
 " Automatic tag file generation
 Plug 'ludovicchabant/vim-gutentags'
 let g:gutentags_project_root = ['.root']
-let g:gutentags_exclude = ['*CMakeFiles*', '.ycm_extra_conf.py']
+let g:gutentags_ctags_exclude = ['*CMakeFiles*', '.ycm_extra_conf.py']
 
 " Completion engine
-Plug 'Shougo/neocomplete.vim'
-let g:neocomplete#enable_at_startup = 1
-imap <expr><CR> pumvisible() ? neocomplete#mappings#close_popup() . "\<CR>" : "\<CR>"
-inoremap <expr><TAB>   pumvisible() ? "\<C-n>" : "\<TAB>"
-inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<S-TAB>"
+Plug 'Valloric/YouCompleteMe'
+augroup load_ycm
+  " Load plugin when entering insert mode.
+  au! InsertEnter *
+    \   call plug#load('YouCompleteMe')
+    \ | call youcompleteme#Enable()
+    \ | setl formatoptions-=o
+    \ | au! load_ycm
+augroup END
+let g:ycm_confirm_extra_conf = 0
+let g:ycm_show_diagnostics_ui = 0
+let g:ycm_global_ycm_extra_conf = '~/dotfiles/ycm_extra_conf.py'
+let g:ycm_key_list_select_completion = ['<C-n>', '<Down>', '<Tab>']
+let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>', '<S-Tab>']
+map <silent> <space>j :YcmCompleter GoTo<CR>
 
 " Vimscript
 Plug 'Shougo/neco-vim'
