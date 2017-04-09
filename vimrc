@@ -318,6 +318,10 @@ map <silent> <space>j :YcmCompleter GoTo<CR>
 " Vimscript
 Plug 'Shougo/neco-vim'
 
+" Shell scripts
+autocmd FileType sh
+  \ setl sw=4 ts=4 expandtab
+
 " Rust language
 Plug 'rust-lang/rust.vim'
 Plug 'racer-rust/vim-racer'
