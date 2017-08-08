@@ -45,20 +45,17 @@ set list               " Enable list mode
 set listchars=tab:\ \  " Represent tab character as spaces
 
 " Statusline format
-function! Branch()
-  if exists('g:loaded_fugitive')
-    let h = fugitive#head()
-    if !empty(h)
-      return '(' . h . ')'
-    endif
-  endif
-  return ''
+function! VCStatusLine()
+  let branch = fugitive#head()
+  return empty(branch) ? '' : '(' . branch . ')  '
 endfunction
-set stl=                                    " Clear statusline format
-set stl+=\ %1*%{!empty(@%)?@%:&ro?'':'~'}   " Color 1: File name or ~ if empty
-set stl+=\ %2*%{&mod?'++':''}               " Color 2: Add ++ if modified
-set stl+=\ %3*%{Branch()}\ %=%-7.(%l,%c%V%) " Color 3: Branch, row, column
-set stl+=\                                  " Extra empty space
+set stl=\                                 " Start with a space
+set stl+=%1*%{!empty(@%)?@%:&ro?'':'~'}\  " Color 1: File name or ~ if empty
+set stl+=%2*%{&mod?'++':'\ \ '}\ \        " Color 2: Add ++ if modified
+set stl+=%3*%{VCStatusLine()}             " Color 3: Version control
+set stl+=%3*%{ALEGetStatusLine()}         " Color 3: Linter
+set stl+=\ %3*\ %=%-7.(%l,%c%V%)          " Color 3: Row & column
+set stl+=\                                " Extra space
 
 " Fix weird quickfix statusline
 autocmd BufNewFile,BufWinEnter quickfix
@@ -212,7 +209,7 @@ call plug#begin('~/.vim/plugged')
 
 Plug 'ConradIrwin/vim-bracketed-paste' " Smarter pasting into vim
 Plug 'dietsche/vim-lastplace'          " Save cursor positing in buffer
-Plug 'matchit.zip'                     " Smarter bracket matching
+Plug 'vim-scripts/matchit.zip'         " Smarter bracket matching
 Plug 'mhinz/vim-signify'               " Show changed lines (VCS-backed)
 Plug 'rbgrouleff/bclose.vim'           " Buffer-close (common dependency)
 Plug 'sheerun/vim-polyglot'            " Language pack
@@ -233,6 +230,7 @@ let base16colorspace = 256
 
 " Better tab names
 Plug 'gcmt/taboo.vim'
+let g:taboo_tab_format = " %P%m "
 let g:taboo_renamed_tab_format = " %l%m "
 let g:taboo_modified_tab_flag = " ++"
 let g:taboo_close_tabs_label = "X"
@@ -255,7 +253,7 @@ let g:yankring_history_dir = '~/.vim'
 let g:yankring_replace_n_nkey = ''
 
 " Automatic :nohl command
-Plug 'pgdouyon/vim-evanesco'
+Plug 'junegunn/vim-slash'
 
 " Quit buffer using :d command
 Plug 'mhinz/vim-sayonara'
@@ -294,6 +292,8 @@ let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_enter = 0
 nmap ]w <plug>(ale_next_wrap)
 nmap [w <plug>(ale_previous_wrap)
+hi link ALEError Default
+hi link ALEWarning Default
 
 " Automatic tag file generation
 Plug 'ludovicchabant/vim-gutentags'
