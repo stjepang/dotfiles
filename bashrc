@@ -33,7 +33,7 @@ fi
 
 # Change directory using ranger
 ranger-cd() {
-  /usr/bin/ranger --choosedir=/tmp/chosendir "$PWD"
+  ranger --choosedir=/tmp/chosendir "$PWD"
   [[ "$(cat /tmp/chosendir)" != "$PWD" ]] && cd $(cat /tmp/chosendir)
   rm -f /tmp/chosendir
 }
