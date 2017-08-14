@@ -1,6 +1,7 @@
 # Basic environment variables
 export HISTSIZE=100000
 export HISTFILESIZE=100000
+export HISTIGNORE='rm *:sudo rm*'
 export EDITOR=vim
 
 # Basic aliases
