@@ -204,6 +204,16 @@ endfunction
 command! -bang Outline call s:outline()
 nnoremap <silent> <space>o :Outline<CR>
 
+" Refresh - useful when things go wrong
+function! s:refresh()
+  silent! call mkdir(fnamemodify(tempname(), ":p:h"), "", 0700)
+  set nohlsearch
+  redraw
+  redrawstatus
+endfunction
+command! -bang Refresh call s:refresh()
+nnoremap <silent> <space>r :Refresh<CR>
+
 
 call plug#begin('~/.vim/plugged')
 
