@@ -219,7 +219,7 @@ call plug#begin('~/.vim/plugged')
 
 Plug 'ConradIrwin/vim-bracketed-paste' " Smarter pasting into vim
 Plug 'dietsche/vim-lastplace'          " Save cursor positing in buffer
-Plug 'vim-scripts/matchit.zip'         " Smarter bracket matching
+Plug 'adelarsq/vim-matchit'            " Smarter bracket matching
 Plug 'mhinz/vim-signify'               " Show changed lines (VCS-backed)
 Plug 'rbgrouleff/bclose.vim'           " Buffer-close (common dependency)
 Plug 'sheerun/vim-polyglot'            " Language pack
@@ -278,7 +278,7 @@ let g:undotree_WindowLayout = 3
 
 " Comment line(s) using t key
 Plug 'tomtom/tcomment_vim'
-let g:tcommentMaps = 0
+let g:tcomment_maps = 0
 nnoremap <silent> t :TComment<CR>j
 vnoremap <silent> t :TComment<CR>
 
@@ -359,6 +359,9 @@ set cinoptions+=g1 " Indent scope declarations by 1 space
 set cinoptions+=h1 " Indent stuff after scope declarations by 1 more space
 autocmd FileType c,cpp
   \   setl shiftwidth=4 tabstop=4
+
+" Go language
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 
 " Java language
 autocmd FileType java
