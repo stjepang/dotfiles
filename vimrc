@@ -49,13 +49,20 @@ function! VCStatusLine()
   let branch = fugitive#head()
   return empty(branch) ? '' : '(' . branch . ')  '
 endfunction
+function! LintStatusLine() abort
+  let l:counts = ale#statusline#Count(bufnr(''))
+  let l:errors = l:counts.error + l:counts.style_error
+  let l:warnings = l:counts.total - l:errors
+  return l:counts.total == 0 ? 'OK' : printf('%dE %dW', l:errors, l:warnings)
+endfunction
 set stl=\                                 " Start with a space
 set stl+=%1*%{!empty(@%)?@%:&ro?'':'~'}\  " Color 1: File name or ~ if empty
 set stl+=%2*%{&mod?'++':'\ \ '}\ \        " Color 2: Add ++ if modified
 set stl+=%3*%{VCStatusLine()}             " Color 3: Version control
-set stl+=%3*%{ALEGetStatusLine()}         " Color 3: Linter
+set stl+=%3*%{LintStatusLine()}           " Color 3: Linter
 set stl+=\ %3*\ %=%-7.(%l,%c%V%)          " Color 3: Row & column
 set stl+=\                                " Extra space
+
 
 " Fix weird quickfix statusline
 autocmd BufNewFile,BufWinEnter quickfix
