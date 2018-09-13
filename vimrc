@@ -367,9 +367,6 @@ set cinoptions+=h1 " Indent stuff after scope declarations by 1 more space
 autocmd FileType c,cpp
   \   setl shiftwidth=4 tabstop=4
 
-" Go language
-Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
-
 " Java language
 autocmd FileType java
   \   setl colorcolumn=100
