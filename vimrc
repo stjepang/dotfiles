@@ -307,6 +307,7 @@ nnoremap <silent> <space>: :Commands<CR>
 Plug 'w0rp/ale'
 let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_enter = 0
+let g:ale_cpp_clangcheck_options = '-std=c++14'
 nmap ]w <plug>(ale_next_wrap)
 nmap [w <plug>(ale_previous_wrap)
 hi link ALEError Default
