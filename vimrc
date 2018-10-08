@@ -277,6 +277,10 @@ Plug 'mhinz/vim-sayonara'
 cnoreabbrev <silent><expr> d
   \ getcmdtype() == ":" && getcmdline() == 'd' ? 'Sayonara!' : 'd'
 
+" Preview search-and-replace
+Plug 'markonm/traces.vim'
+let g:traces_preserve_view_state = 1
+
 " Undo tree
 Plug 'mbbill/undotree'
 noremap U :UndotreeToggle<CR>
@@ -302,6 +306,7 @@ nnoremap <silent> <space>l :BLines<CR>
 nnoremap <silent> <space>h :History<CR>
 nnoremap <silent> <space>; :Commands<CR>
 nnoremap <silent> <space>: :Commands<CR>
+nnoremap <silent> <space>` :Marks<CR>
 
 " Real-time linting
 Plug 'w0rp/ale'
@@ -320,6 +325,9 @@ let g:gutentags_ctags_exclude = ['*CMakeFiles*', '.ycm_extra_conf.py']
 
 " Completion engine
 Plug 'Valloric/YouCompleteMe'
+
+Plug 'Valloric/YouCompleteMe',
+      \ { 'do': './install.py --clang-completer --rust-completer' }
 augroup load_ycm
   " Load plugin when entering insert mode.
   au! InsertEnter *
