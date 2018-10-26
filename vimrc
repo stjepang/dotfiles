@@ -384,6 +384,10 @@ autocmd FileType java
 autocmd FileType python
   \   setl colorcolumn=79
 
+" Toml configuration language
+autocmd FileType toml
+  \   setl shiftwidth=2 tabstop=2
+
 call plug#end()
 
 
