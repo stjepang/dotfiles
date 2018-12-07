@@ -324,8 +324,6 @@ let g:gutentags_project_root = ['.root']
 let g:gutentags_ctags_exclude = ['*CMakeFiles*', '.ycm_extra_conf.py']
 
 " Completion engine
-Plug 'Valloric/YouCompleteMe'
-
 Plug 'Valloric/YouCompleteMe',
       \ { 'do': './install.py --clang-completer --rust-completer' }
 augroup load_ycm
