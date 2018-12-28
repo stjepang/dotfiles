@@ -1,17 +1,17 @@
 [user]
-	name = Stjepan Glavina
+    name = Stjepan Glavina
 [alias]
-	a = add
-	c = commit
-	d = diff
-	dt = difftool --tool=meld -d
-	co = checkout
-	s = status
-	l = log --graph --decorate
-	g = log --graph --decorate --oneline --all
+    a = add
+    c = commit
+    d = diff
+    dt = difftool --tool=meld -d
+    co = checkout
+    s = status
+    l = log --graph --decorate
+    g = log --graph --decorate --oneline --all
 [push]
-	default = current
+    default = current
 [pull]
-	rebase = true
+    rebase = true
 [core]
     excludesfile = ~/.gitignore
