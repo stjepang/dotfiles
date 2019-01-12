@@ -12,6 +12,9 @@ alias rm='rm -I'
 alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
 
+# Rust-related aliases
+alias c='cargo'
+
 # Command line format
 export PS1='\
 \[\e[1;34m\]\W\[\e[m\]\
