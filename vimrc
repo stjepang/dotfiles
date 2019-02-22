@@ -293,6 +293,11 @@ let g:tcomment_maps = 0
 nnoremap <silent> t :TComment<CR>j
 vnoremap <silent> t :TComment<CR>
 
+" Code formatting
+Plug 'sbdchd/neoformat'
+nnoremap <silent> <space>f :Neoformat<CR>
+vnoremap <silent> <space>f :Neoformat<CR>
+
 " Fuzzy completion
 Plug 'junegunn/fzf', { 'dir': '~/.fzf' }
 Plug 'junegunn/fzf.vim'
