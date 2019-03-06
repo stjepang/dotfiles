@@ -53,7 +53,7 @@ function! LintStatusLine() abort
   let l:counts = ale#statusline#Count(bufnr(''))
   let l:errors = l:counts.error + l:counts.style_error
   let l:warnings = l:counts.total - l:errors
-  return l:counts.total == 0 ? 'OK' : printf('%dE %dW', l:errors, l:warnings)
+  return l:counts.total == 0 ? 'OK' : printf('%de %dw', l:errors, l:warnings)
 endfunction
 set stl=\                                 " Start with a space
 set stl+=%1*%{!empty(@%)?@%:&ro?'':'~'}\  " Color 1: File name or ~ if empty
@@ -295,6 +295,11 @@ vnoremap <silent> t :TComment<CR>
 
 " Code formatting
 Plug 'sbdchd/neoformat'
+let g:neoformat_rust_rustfmt = {
+  \ 'exe': 'rustfmt',
+  \ 'args': ['--edition', '2018', '--unstable-features'],
+  \ 'stdin': 1,
+  \ }
 nnoremap <silent> <space>f :Neoformat<CR>
 vnoremap <silent> <space>f :Neoformat<CR>
 
