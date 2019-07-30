@@ -338,7 +338,7 @@ let g:gutentags_ctags_exclude = ['*CMakeFiles*', '.ycm_extra_conf.py']
 
 " Completion engine
 Plug 'Valloric/YouCompleteMe',
-      \ { 'do': './install.py --clang-completer --rust-completer' }
+      \ { 'do': './install.py --clang-completer --rust-completer --go-completer' }
 augroup load_ycm
   " Load plugin when entering insert mode.
   au! InsertEnter *
