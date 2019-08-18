@@ -1,5 +1,6 @@
 [user]
     name = Stjepan Glavina
+    email = stjepang@gmail.com
 [alias]
     a = add
     c = commit
