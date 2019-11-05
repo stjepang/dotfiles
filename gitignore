@@ -3,3 +3,4 @@ tags.temp
 tags.lock
 .ycm_extra_conf.py
 *.pyc
+.root

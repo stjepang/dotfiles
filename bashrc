@@ -14,6 +14,7 @@ alias egrep='egrep --color=auto'
 
 # Rust-related aliases
 alias c='cargo'
+alias cw="cargo watch -s 'clear; cargo check --tests --color=always 2>&1 | head -40'"
 
 # Command line format
 export PS1='\
