@@ -11,7 +11,7 @@ h=$(tmux display-message -p '#{window_height}')
 dirs=()
 for ((i=0;i<n;i++)); do
   # choose split direction
-  if [ $(( h * 100 / 25 )) -ge $w ]; then
+  if [ $(( h * 100 / 30 )) -ge $w ]; then
     dir=1
   else
     dir=0
