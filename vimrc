@@ -1,5 +1,5 @@
 set hidden            " Hide abandoned buffers, don't unload
-set mouse=            " Disable mouse
+set mouse=a           " Enable mouse
 set history=10000     " Long command history
 set viminfo='500,"500 " Long mark history
 set encoding=utf-8    " Use UTF-8 in Vim
@@ -111,7 +111,7 @@ inoremap <silent> <C-s>    <C-O>:update<cr>
 noremap  <silent> <C-s>    :update<cr>
 
 " Redraw and clear highlighted search matches
-noremap <silent> <C-l> :nohl<CR><C-l>
+noremap <silent> <C-l> :nohl<CR>:set nopaste<CR><C-l>
 
 " Remove trailing whitespace from all lines in the buffer
 command! TrimBuffer %s/\s\+$//
@@ -240,13 +240,14 @@ Plug 'tpope/vim-unimpaired'            " Pairs of handy [ and ] mappings
 Plug 'tweekmonster/wstrip.vim'
 let g:wstrip_auto = 1
 let g:wstrip_highlight = 0
+autocmd FileType gitconfig let b:wstrip_auto = 0
 
 " Color theme
 function FixupBase16(info)
     !sed -i '/Base16hi/\! s/a:\(attr\|guisp\)/l:\1/g' ~/.vim/plugged/base16-vim/colors/*.vim
 endfunction
-Plug 'chriskempson/base16-vim', { 'do': function('FixupBase16') }
 let base16colorspace = 256
+Plug 'chriskempson/base16-vim', { 'do': function('FixupBase16') }
 
 " Better tab names
 Plug 'gcmt/taboo.vim'

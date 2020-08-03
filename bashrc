@@ -2,13 +2,19 @@
 export HISTSIZE=100000
 export HISTFILESIZE=100000
 export HISTIGNORE='rm *:sudo rm*'
+export HISTCONTROL=ignoreboth:erasedups
 export EDITOR=vim
 
 # Basic aliases
-alias ls='ls --color=auto'
+if [ "$(uname)" == "Darwin" ]; then
+  alias ls='ls -G'
+  alias rm='rm -i'
+else
+  alias ls='ls --color=auto'
+  alias rm='rm -I'
+fi
 alias ll='ls -l'
 alias la='ls -la'
-alias rm='rm -I'
 alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
 
@@ -48,3 +54,6 @@ bind '"\C-o":"\C-u\C-a\C-kranger-cd\C-m"'
 export FZF_TMUX=0
 export FZF_DEFAULT_OPTS='-e'
 export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow --glob "!.git/*"'
+
+# Don't discard Ctrl-O keypresses
+[ "$(uname)" == "Darwin" ] && stty discard undef
