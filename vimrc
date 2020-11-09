@@ -265,7 +265,7 @@ autocmd FileType gitcommit
 " Automatically change current working directory
 Plug 'airblade/vim-rooter'
 let g:rooter_patterns = ['.root', '.git/', '_darcs/', '.hg/', '.bzr/', '.svn/']
-let g:rooter_use_lcd = 1
+let g:rooter_cd_cmd = "lcd"
 let g:rooter_silent_chdir = 1
 
 " Yank history (use C-p/C-n after pasting)
@@ -331,6 +331,7 @@ nmap ]w <plug>(ale_next_wrap)
 nmap [w <plug>(ale_previous_wrap)
 hi link ALEError Default
 hi link ALEWarning Default
+let g:ale_rust_cargo_use_clippy = 0
 
 " Automatic tag file generation
 Plug 'ludovicchabant/vim-gutentags'
@@ -363,6 +364,12 @@ Plug 'Shougo/neco-vim'
 " Shell scripts
 autocmd FileType sh
   \ setl sw=4 ts=4 expandtab
+
+" Go language
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+let g:go_doc_keywordprg_enabled = 0
+autocmd FileType go
+  \   setl colorcolumn=80
 
 " Rust language
 Plug 'rust-lang/rust.vim'
@@ -436,3 +443,4 @@ hi VertSplit ctermbg=0 ctermfg=19
 hi CursorLine ctermbg=19
 hi MatchParen ctermbg=0 ctermfg=15 cterm=bold,underline
 hi WildMenu ctermbg=18 ctermfg=16 cterm=bold
+hi SpellRare ctermbg=0 cterm=undercurl
