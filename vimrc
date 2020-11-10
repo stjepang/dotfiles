@@ -416,6 +416,11 @@ syntax on                   " Enable syntax highlighting
 set background=dark         " Assume dark background
 colorscheme base16-tomorrow " Set color theme
 
+" Some fixes for annoying colors follow.
+" To debug colors, try this:
+"   :highlight
+"   :runtime syntax/colortest.vim
+
 " Statusline colors
 hi def User1 ctermbg=18 ctermfg=20 cterm=bold
 hi def User2 ctermbg=18 ctermfg=1 cterm=bold
