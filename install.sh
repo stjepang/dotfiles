@@ -15,7 +15,7 @@ if ! [ -x "$(command -v vim)" ]; then
   exit 1
 fi
 
-if ! [ -x "$(command -v fzf)" ]; then
+if ! [ -d "$HOME/.fzf" ]; then
   git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf || exit 1
   ~/.fzf/install --all --no-zsh --no-fish || exit 1
 fi
