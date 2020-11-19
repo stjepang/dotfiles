@@ -18,9 +18,12 @@ alias la='ls -la'
 alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
 
-# Rust-related aliases
+# Let aliases work with sudo
+alias sudo='sudo '
+
+# Other aliases
+alias g='git'
 alias c='cargo'
-alias cw="cargo watch -s 'clear; cargo check --tests --color=always 2>&1 | head -40'"
 
 # Command line format
 export PS1='\
@@ -32,27 +35,21 @@ $(\
 )\[\e[m\] \
 \[\e[1;32m\]\$\[\e[m\] '
 
-# Let aliases work with sudo
-alias sudo='sudo '
-
-# Git alias
-alias g='git'
-
 # Change directory using ranger
 ranger-cd() {
   ranger --choosedir=/tmp/chosendir "$PWD"
-  [[ "$(cat /tmp/chosendir)" != "$PWD" ]] && cd $(cat /tmp/chosendir)
+  [[ "$(cat /tmp/chosendir)" != "$PWD" ]] && cd "$(cat /tmp/chosendir)"
   rm -f /tmp/chosendir
 }
-bind '"\C-o":"\C-u\C-a\C-kranger-cd\C-m"'
+bind '"\C-o":"\C-u\C-a\C-kranger-cd\C-m\C-l"'
+
+# Don't discard Ctrl-O keypresses
+[ "$(uname)" == "Darwin" ] && stty discard undef
 
 # FZF options
 export FZF_TMUX=0
 export FZF_DEFAULT_OPTS='-e --preview-window=up:50% --bind=ctrl-/:toggle-preview'
 export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow --glob "!.git/*"'
 
-# Don't discard Ctrl-O keypresses
-[ "$(uname)" == "Darwin" ] && stty discard undef
-
 # Load color theme
-source ~/work/base16-shell/scripts/base16-tomorrow-night.sh
+source ~/dotfiles/base16-shell/scripts/base16-tomorrow-night.sh

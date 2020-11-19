@@ -1,0 +1,63 @@
+[submodule "base16-shell"]
+	path = base16-shell
+	url = https://github.com/chriskempson/base16-shell.git
+[submodule "pack/vim-cool"]
+	path = pack/vim-cool
+	url = https://github.com/romainl/vim-cool.git
+[submodule "pack/colors/start/base16-vim"]
+	path = pack/colors/start/base16-vim
+	url = https://github.com/chriskempson/base16-vim.git
+[submodule "pack/plugins/start/vim-matchit"]
+	path = pack/plugins/start/vim-matchit
+	url = https://github.com/adelarsq/vim-matchit.git
+[submodule "pack/plugins/start/vim-lastplace"]
+	path = pack/plugins/start/vim-lastplace
+	url = https://github.com/dietsche/vim-lastplace.git
+[submodule "pack/plugins/start/vim-polyglot"]
+	path = pack/plugins/start/vim-polyglot
+	url = https://github.com/sheerun/vim-polyglot.git
+[submodule "pack/plugins/start/vim-eunuch"]
+	path = pack/plugins/start/vim-eunuch
+	url = https://github.com/tpope/vim-eunuch.git
+[submodule "pack/plugins/start/vim-repeat"]
+	path = pack/plugins/start/vim-repeat
+	url = https://github.com/tpope/vim-repeat.git
+[submodule "pack/plugins/start/vim-rsi"]
+	path = pack/plugins/start/vim-rsi
+	url = https://github.com/tpope/vim-rsi.git
+[submodule "pack/plugins/start/vim-sleuth"]
+	path = pack/plugins/start/vim-sleuth
+	url = https://github.com/tpope/vim-sleuth.git
+[submodule "pack/plugins/start/vim-unimpaired"]
+	path = pack/plugins/start/vim-unimpaired
+	url = https://github.com/tpope/vim-unimpaired.git
+[submodule "pack/plugins/opt/vim-signify"]
+	path = pack/plugins/opt/vim-signify
+	url = https://github.com/mhinz/vim-signify.git
+[submodule "pack/plugins/opt/bclose.vim"]
+	path = pack/plugins/opt/bclose.vim
+	url = https://github.com/rbgrouleff/bclose.vim.git
+[submodule "pack/plugins/opt/wstrip.vim"]
+	path = pack/plugins/opt/wstrip.vim
+	url = https://github.com/tweekmonster/wstrip.vim.git
+[submodule "pack/plugins/opt/vim-rooter"]
+	path = pack/plugins/opt/vim-rooter
+	url = https://github.com/airblade/vim-rooter.git
+[submodule "pack/plugins/opt/YankRing.vim"]
+	path = pack/plugins/opt/YankRing.vim
+	url = https://github.com/vim-scripts/YankRing.vim.git
+[submodule "pack/plugins/opt/traces.vim"]
+	path = pack/plugins/opt/traces.vim
+	url = https://github.com/markonm/traces.vim.git
+[submodule "pack/plugins/opt/undotree"]
+	path = pack/plugins/opt/undotree
+	url = https://github.com/mbbill/undotree.git
+[submodule "pack/plugins/opt/tcomment_vim"]
+	path = pack/plugins/opt/tcomment_vim
+	url = https://github.com/tomtom/tcomment_vim.git
+[submodule "pack/plugins/opt/fzf.vim"]
+	path = pack/plugins/opt/fzf.vim
+	url = https://github.com/junegunn/fzf.vim.git
+[submodule "pack/plugins/opt/fzf"]
+	path = pack/plugins/opt/fzf
+	url = https://github.com/junegunn/fzf.git

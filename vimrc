@@ -44,20 +44,24 @@ set autoindent         " Automatically indent when starting a new line
 set list               " Enable list mode
 set listchars=tab:\ \  " Represent tab character as spaces
 
-" Statusline format
-set stl=\                                 " Start with a space
-set stl+=%1*%{!empty(@%)?@%:&ro?'':'~'}\  " Color 1: File name or ~ if empty
-set stl+=%2*%{&mod?'++':'\ \ '}\ \        " Color 2: Add ++ if modified
-set stl+=\ %3*\ %=%-7.(%l,%c%V%)          " Color 3: Row & column
-set stl+=\                                " Extra space
+set packpath+=$HOME/dotfiles " Where plugins are stored
 
+" Help settings
+autocmd FileType help
+  \ noremap <buffer><nowait> q :q<CR>
+
+" Netrw settings
+let g:netrw_banner = 0
+autocmd FileType netrw
+  \   setl bufhidden=wipe
+  \ | noremap <buffer><nowait> q :bd<CR>
 
 " Quickfix settings
 autocmd BufNewFile,BufWinEnter quickfix
   \   let &l:stl = '%1* quickfix%3*%=%-14.(%l,%c%V%)%P '
   \ | nnoremap <silent><buffer> q :cclose<CR>
 
-" Opening a new line after a comment doesn't start a new comment
+" Don't start a new comment after opening a new line below a comment
 autocmd BufNewFile,BufWinEnter *
   \ setl formatoptions-=o
 
@@ -88,7 +92,7 @@ xnoremap < <gv
 xnoremap > >gv
 
 " Switch to last used buffer
-nnoremap <BS> <C-^>
+nnoremap <silent> <BS> <C-^>
 
 " Move to next window
 nnoremap <silent> <C-n> <C-w><C-w>
@@ -96,34 +100,46 @@ nnoremap <silent> <C-n> <C-w><C-w>
 " Quick save
 nnoremap <silent> <space>w :update<CR>
 
-" Redraw and clear highlighted search matches
+" Simple reset when things go wrong
 noremap <silent> <C-l> :nohl<CR>:set nopaste<CR><C-l>
 
-" Remove trailing whitespace from all lines in the buffer
-command! TrimBuffer %s/\s\+$//
+" Quit buffer using :d
+cnoreabbrev <silent><expr> d
+  \ getcmdtype() == ":" && getcmdline() == 'd' ? 'Bclose!' : 'd'
 
-" Netrw settings
-autocmd FileType netrw
-  \   setl bufhidden=wipe
-  \ | noremap <buffer><nowait> q :bd<CR>
-let g:netrw_banner = 0
+" Strip changed lines
+let g:wstrip_auto = 1
+let g:wstrip_highlight = 0
+packadd wstrip.vim
+autocmd FileType gitconfig let b:wstrip_auto = 0
 
-" Help settings
-autocmd FileType help
-  \ noremap <buffer><nowait> q :q<CR>
+" Show changed lines in version control
+packadd vim-signify
 
-" Complete braces on <CR> in a sensible way
-function! s:complete_braces()
-  let line = getline('.')
-  let col = col('.')
-  if col < 1000 && col == len(line) + 1 && matchstr(line, '\%' . (col-1) . 'c.') == '{'
-    return "}\<C-o>k\<C-o>A\<CR>"
-  endif
-  return ""
-endfunction
-inoremap <buffer><expr><CR> "\<CR>" . <SID>complete_braces()
+" Automatically set current directory
+let g:rooter_patterns = ['.root', '.git/', '_darcs/', '.hg/', '.bzr/', '.svn/']
+let g:rooter_cd_cmd = 'lcd'
+let g:rooter_silent_chdir = 1
+packadd vim-rooter
 
-" Open ranger or netrw with '-'
+" Yank history (use C-p after pasting)
+let g:yankring_history_dir = '~/.vim'
+let g:yankring_replace_n_nkey = ''
+let g:yankring_n_keys = ''
+packadd YankRing.vim
+
+" Comment line(s) using t key
+let g:tcomment_maps = 0
+packadd tcomment_vim
+nnoremap <silent> t :TComment<CR>j
+vnoremap <silent> t :TComment<CR>
+
+" Undo tree
+let g:undotree_SetFocusWhenToggle = 1
+let g:undotree_WindowLayout = 3
+noremap <silent> U :packadd undotree<CR>:UndotreeToggle<CR>
+
+" Open ranger or netrw using - key
 if executable('ranger')
   function! s:ranger()
     exec "silent !ranger --choosefiles=/tmp/chosenfile --selectfile=" . expand("%:p")
@@ -140,101 +156,126 @@ else
   nnoremap <silent> - :e .<CR>
 endif
 
+" Fuzzy completion
+if executable('fzf')
+  let g:fzf_layout = {}
+  let g:fzf_buffers_jump = 1
+  let g:fzf_preview_window = ['up:50%', 'ctrl-/']
+  packadd fzf
+  packadd fzf.vim
+  nnoremap <silent> <C-j> :Buffers<CR>
+  nnoremap <silent> <C-k> :Buffers<CR>
+  nnoremap <silent> <space>e :Files<CR>
+  nnoremap <silent> <space>l :BLines<CR>
+  nnoremap <silent> <space>h :History<CR>
+  nnoremap <silent> <space>; :Commands<CR>
+  nnoremap <silent> <space>: :Commands<CR>
+  nnoremap <silent> <space>` :Marks<CR>
+  if executable('ag')
+    nnoremap <space>g :Ag<Space>
+  elseif executable('rg')
+    nnoremap <space>g :Rg<Space>
+  else
+    nnoremap <space>g :Grep<Space>
+  endif
+  command! -bang -nargs=* Grep
+    \ call fzf#vim#grep(
+    \   'grep --line-number --line-buffered --color=always -r ' . shellescape(<q-args>).' .',
+    \   0,
+    \   fzf#vim#with_preview({'dir': '.'}),
+    \   <bang>0)
+endif
+
+" Color theme
+" To debug colors, try this:
+"   :highlight
+"   :runtime syntax/colortest.vim
+let base16colorspace = 256
+packadd base16-vim
+colorscheme base16-tomorrow
+syntax on
+set background=dark
+
+" General GUI colors
+hi CursorLine ctermbg=19
+hi TabLine ctermbg=18 ctermfg=20
+hi TabLineFill ctermbg=18 ctermfg=20
+hi TabLineSel ctermbg=19 ctermfg=16 cterm=bold
+hi VertSplit ctermbg=0 ctermfg=19
+hi WildMenu ctermbg=18 ctermfg=16 cterm=bold
+hi Search ctermbg=0 ctermfg=15 cterm=bold
+hi IncSearch ctermbg=9 ctermfg=15 cterm=bold
+hi MatchParen ctermbg=0 ctermfg=15 cterm=bold,underline
+hi SpellRare ctermbg=0 cterm=undercurl
+
+" Completion popup colors
+hi Pmenu ctermbg=19 ctermfg=7
+hi PmenuSel ctermbg=17 ctermfg=15
+hi PmenuSbar ctermbg=19 ctermfg=19
+hi PmenuThumb ctermbg=8 ctermfg=8
+
+" Statusline format
+set stl=\                                 " Start with a space
+set stl+=%1*%{!empty(@%)?@%:&ro?'':'~'}\  " Color 1: File name or ~ if empty
+set stl+=%2*%{&mod?'++':'\ \ '}\ \        " Color 2: Add ++ if modified
+set stl+=\ %3*\ %=%-7.(%l,%c%V%)          " Color 3: Row & column
+set stl+=\                                " Extra space
+hi def User1 ctermbg=18 ctermfg=20 cterm=bold
+hi def User2 ctermbg=18 ctermfg=1 cterm=bold
+hi def User3 ctermbg=18 ctermfg=20
+hi StatusLine ctermbg=18 ctermfg=20
+hi StatusLineNC ctermbg=18 ctermfg=8
+
+" Complete braces on <CR> in a sensible way
+function! s:complete_braces()
+  let line = getline('.')
+  let col = col('.')
+  if col < 1000 && col == len(line) + 1 && matchstr(line, '\%' . (col-1) . 'c.') == '{'
+    return "}\<C-o>k\<C-o>A\<CR>"
+  endif
+  return ""
+endfunction
+inoremap <buffer><expr><CR> "\<CR>" . <SID>complete_braces()
+
+" Language pack
+let g:polyglot_disabled = ['sh']
+packadd vim-polyglot
+
+" Shell scripts
+autocmd FileType sh
+  \ setl sw=4 ts=4 expandtab
+
+" Rust language
+autocmd FileType rust
+  \   setl colorcolumn=100
+  \ | setl sw=4 ts=4 expandtab
+
+" Python language
+autocmd FileType python
+  \   setl colorcolumn=79
+
+" Toml configuration language
+autocmd FileType toml
+  \   setl shiftwidth=2 tabstop=2
+
+
+
+
+
+
+
 
 call plug#begin('~/.vim/plugged')
 
-Plug 'adelarsq/vim-matchit'            " Smarter bracket matching
-Plug 'dietsche/vim-lastplace'          " Save cursor position in buffer
-Plug 'mhinz/vim-signify'               " Show changed lines (VCS-backed)
-Plug 'romainl/vim-cool'                " Automatic :nohl
-Plug 'sheerun/vim-polyglot'            " Language pack
-Plug 'tpope/vim-eunuch'                " Useful file management commands
-Plug 'tpope/vim-repeat'                " Smarter . key
-Plug 'tpope/vim-rsi'                   " Readline style mappings in insert mode
-Plug 'tpope/vim-sleuth'                " Heuristically set buffer options
-Plug 'tpope/vim-unimpaired'            " Pairs of handy [ and ] mappings
-
-" Quit buffer using :d
-Plug 'rbgrouleff/bclose.vim'
-cnoreabbrev <silent><expr> d
-  \ getcmdtype() == ":" && getcmdline() == 'd' ? 'Bclose!' : 'd'
-
-" Strip modified lines
-Plug 'tweekmonster/wstrip.vim'
-let g:wstrip_auto = 1
-let g:wstrip_highlight = 0
-autocmd FileType gitconfig let b:wstrip_auto = 0
-
-" Color theme
-function FixupBase16(info)
-    !sed -i '/Base16hi/\! s/a:\(attr\|guisp\)/l:\1/g' ~/.vim/plugged/base16-vim/colors/*.vim
-endfunction
-let base16colorspace = 256
-Plug 'chriskempson/base16-vim', { 'do': function('FixupBase16') }
-
-" Automatically change current working directory
-Plug 'airblade/vim-rooter'
-let g:rooter_patterns = ['.root', '.git/', '_darcs/', '.hg/', '.bzr/', '.svn/']
-let g:rooter_cd_cmd = 'lcd'
-let g:rooter_silent_chdir = 1
-
-" Yank history (use C-p after pasting)
-Plug 'vim-scripts/YankRing.vim'
-let g:yankring_history_dir = '~/.vim'
-let g:yankring_replace_n_nkey = ''
-let g:yankring_n_keys = ''
-
-" Preview search-and-replace
-Plug 'markonm/traces.vim'
-let g:traces_preserve_view_state = 1
-
-" Undo tree
-Plug 'mbbill/undotree'
-noremap U :UndotreeToggle<CR>
-let g:undotree_SetFocusWhenToggle = 1
-let g:undotree_WindowLayout = 3
-
-" Comment line(s) using t key
-Plug 'tomtom/tcomment_vim'
-let g:tcomment_maps = 0
-nnoremap <silent> t :TComment<CR>j
-vnoremap <silent> t :TComment<CR>
-
 " Code formatting
-Plug 'sbdchd/neoformat'
 let g:neoformat_rust_rustfmt = {
   \ 'exe': 'rustfmt',
   \ 'args': ['--edition', '2018', '--unstable-features'],
   \ 'stdin': 1,
   \ }
+Plug 'sbdchd/neoformat'
 nnoremap <silent> <space>f :Neoformat<CR>
 vnoremap <silent> <space>f :Neoformat<CR>
-
-" Fuzzy completion
-Plug 'junegunn/fzf', { 'dir': '~/.fzf' }
-Plug 'junegunn/fzf.vim'
-let g:fzf_layout = {}
-let g:fzf_buffers_jump = 1
-let g:fzf_preview_window = ['up:50%', 'ctrl-/']
-nnoremap <silent> <C-j> :Buffers<CR>
-nnoremap <silent> <C-k> :Buffers<CR>
-nnoremap <silent> <space>e :Files<CR>
-nnoremap <silent> <space>l :BLines<CR>
-nnoremap <silent> <space>h :History<CR>
-nnoremap <silent> <space>; :Commands<CR>
-nnoremap <silent> <space>: :Commands<CR>
-nnoremap <silent> <space>` :Marks<CR>
-if executable('ag')
-  nnoremap <space>g :Ag<Space>
-elseif executable('rg')
-  nnoremap <space>g :Rg<Space>
-else
-  nnoremap <space>g :Grep<Space>
-endif
-command! -bang -nargs=* Grep
-  \ call fzf#vim#grep(
-  \   'grep --line-number --line-buffered --color=always -r '.shellescape(<q-args>).' .',
-  \   0, fzf#vim#with_preview({'dir': '.'}), <bang>0)
 
 
 " Real-time linting
@@ -351,69 +392,11 @@ nmap <silent> <space>k :call <SID>show_documentation()<CR>
 
 
 
-" Shell scripts
-autocmd FileType sh
-  \ setl sw=4 ts=4 expandtab
 
 " Go language
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 let g:go_doc_keywordprg_enabled = 0
 autocmd FileType go
   \   setl colorcolumn=80
-  \ | inoremap <buffer><expr><CR> "\<CR>" . <SID>complete_braces()
-
-" Rust language
-Plug 'rust-lang/rust.vim'
-autocmd FileType rust
-  \   setl colorcolumn=100
-  \ | setl sw=4 ts=4 expandtab
-  \ | inoremap <buffer><expr><CR> "\<CR>" . <SID>complete_braces()
-
-" Python language
-autocmd FileType python
-  \   setl colorcolumn=79
-
-" Toml configuration language
-autocmd FileType toml
-  \   setl shiftwidth=2 tabstop=2
 
 call plug#end()
-
-
-syntax on                   " Enable syntax highlighting
-set background=dark         " Assume dark background
-colorscheme base16-tomorrow " Set color theme
-
-" Some fixes for annoying colors follow.
-" To debug colors, try this:
-"   :highlight
-"   :runtime syntax/colortest.vim
-
-" Statusline colors
-hi def User1 ctermbg=18 ctermfg=20 cterm=bold
-hi def User2 ctermbg=18 ctermfg=1 cterm=bold
-hi def User3 ctermbg=18 ctermfg=20
-hi StatusLine ctermbg=18 ctermfg=20
-hi StatusLineNC ctermbg=18 ctermfg=8
-
-" Completion popup colors
-hi Pmenu ctermbg=19 ctermfg=7
-hi PmenuSel ctermbg=17 ctermfg=15
-hi PmenuSbar ctermbg=19 ctermfg=19
-hi PmenuThumb ctermbg=8 ctermfg=8
-
-" Search colors
-hi Search ctermbg=0 ctermfg=15 cterm=bold
-hi IncSearch ctermbg=9 ctermfg=15 cterm=bold
-
-" Tab line colors
-hi TabLineSel ctermbg=19 ctermfg=16 cterm=bold
-hi TabLineFill ctermbg=18 ctermfg=20
-hi TabLine ctermbg=18 ctermfg=20
-
-" Other GUI colors
-hi VertSplit ctermbg=0 ctermfg=19
-hi CursorLine ctermbg=19
-hi MatchParen ctermbg=0 ctermfg=15 cterm=bold,underline
-hi WildMenu ctermbg=18 ctermfg=16 cterm=bold
-hi SpellRare ctermbg=0 cterm=undercurl

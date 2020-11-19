@@ -5,7 +5,6 @@
     a = add
     c = commit
     d = diff
-    dt = difftool --tool=meld -d
     co = checkout
     s = status
     l = log --graph --decorate
