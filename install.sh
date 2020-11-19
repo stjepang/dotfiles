@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# curl -sSf https://raw.githubusercontent.com/stjepang/dotfiles/master/install.sh | bash
+
 cd "$HOME"
 export GIT_TERMINAL_PROMPT=0
 
