@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# curl -sSf https://raw.githubusercontent.com/stjepang/dotfiles/master/install.sh | bash
+# Clone: https://raw.githubusercontent.com/stjepang/dotfiles/master/install.sh
 
 if [ ! -n "$BASH" ]; then
   echo 'Error: current shell is not bash.' >&2
