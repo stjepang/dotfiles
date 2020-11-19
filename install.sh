@@ -39,12 +39,15 @@ append_line ~/.vimrc 'source ~/dotfiles/vimrc'
 if ! [ -x "$(command -v ag)" ]; then
   echo "Note: ag (the_silver_searcher) is not installed."
 fi
+
 if ! [ -x "$(command -v rg)" ]; then
   echo "Note: rg (ripgrep) is not installed."
 fi
+
 if ! [ -x "$(command -v ranger)" ]; then
   echo "Note: ranger is not installed."
 fi
+
 if ! [ -x "$(command -v cargo)" ]; then
   echo "Note: cargo is not installed."
   echo "  Hint: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"

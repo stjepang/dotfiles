@@ -44,7 +44,7 @@ set autoindent         " Automatically indent when starting a new line
 set list               " Enable list mode
 set listchars=tab:\ \  " Represent tab character as spaces
 
-set packpath+=$HOME/dotfiles " Where plugins are stored
+let &packpath.=','.expand('<sfile>:p:h') " Where plugins are stored
 
 " Help settings
 autocmd FileType help

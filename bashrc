@@ -52,4 +52,5 @@ export FZF_DEFAULT_OPTS='-e --preview-window=up:50% --bind=ctrl-/:toggle-preview
 export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow --glob "!.git/*"'
 
 # Load color theme
-source ~/dotfiles/base16-shell/scripts/base16-tomorrow-night.sh
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+source "$DIR/base16-shell/scripts/base16-tomorrow-night.sh"
