@@ -1,6 +1,6 @@
-[user]
-    name = Stjepan Glavina
-    email = stjepang@gmail.com
+# [user]
+#     name = Stjepan Glavina
+#     email = stjepang@gmail.com
 [alias]
     a = add
     c = commit
@@ -15,4 +15,4 @@
 [pull]
     rebase = true
 [core]
-    excludesfile = ~/.gitignore
+    excludesfile = gitignore

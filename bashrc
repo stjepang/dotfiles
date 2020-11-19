@@ -37,10 +37,6 @@ alias sudo='sudo '
 
 # Git alias
 alias g='git'
-if type "_completion_loader" &> /dev/null; then
-  _completion_loader git
-  complete -o default -o nospace -F _git g
-fi
 
 # Change directory using ranger
 ranger-cd() {
@@ -52,8 +48,11 @@ bind '"\C-o":"\C-u\C-a\C-kranger-cd\C-m"'
 
 # FZF options
 export FZF_TMUX=0
-export FZF_DEFAULT_OPTS='-e'
+export FZF_DEFAULT_OPTS='-e --preview-window=up:50% --bind=ctrl-/:toggle-preview'
 export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow --glob "!.git/*"'
 
 # Don't discard Ctrl-O keypresses
 [ "$(uname)" == "Darwin" ] && stty discard undef
+
+# Load color theme
+source ~/work/base16-shell/scripts/base16-tomorrow-night.sh

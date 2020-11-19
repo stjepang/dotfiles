@@ -4,6 +4,7 @@ set history=10000     " Long command history
 set viminfo='500,"500 " Long mark history
 set encoding=utf-8    " Use UTF-8 in Vim
 set shortmess+=I      " Disable splash screen
+set shortmess-=S      " Show search count
 set clipboard=unnamed " Use secondary clipboard (register '*') by default
 
 set noswapfile       " Don't use swap files
@@ -12,12 +13,11 @@ set undofile         " Keep persistent undo
 set undodir=/tmp     " Where to store undo files
 set undolevels=10000 " Long undo history
 
-set number               " Show number line
-set confirm              " Ask to save changes
-set wildmenu             " Better command completion
-set wildignorecase       " Ignore case in command completion
-set completeopt-=preview " Disable annoying popup window when autocompleting
-set laststatus=2         " Always show statusline
+set number         " Show number line
+set confirm        " Ask to save changes
+set wildmenu       " Better command completion
+set wildignorecase " Ignore case in command completion
+set laststatus=2   " Always show statusline
 
 set nowrap                 " Don't wrap lines
 set whichwrap+=<,>,[,],h,l " Arrow keys and h/l wrap over lines
@@ -45,26 +45,14 @@ set list               " Enable list mode
 set listchars=tab:\ \  " Represent tab character as spaces
 
 " Statusline format
-function! VCStatusLine()
-  let branch = fugitive#head()
-  return empty(branch) ? '' : '(' . branch . ')  '
-endfunction
-function! LintStatusLine() abort
-  let l:counts = ale#statusline#Count(bufnr(''))
-  let l:errors = l:counts.error + l:counts.style_error
-  let l:warnings = l:counts.total - l:errors
-  return l:counts.total == 0 ? 'OK' : printf('%de %dw', l:errors, l:warnings)
-endfunction
 set stl=\                                 " Start with a space
 set stl+=%1*%{!empty(@%)?@%:&ro?'':'~'}\  " Color 1: File name or ~ if empty
 set stl+=%2*%{&mod?'++':'\ \ '}\ \        " Color 2: Add ++ if modified
-set stl+=%3*%{VCStatusLine()}             " Color 3: Version control
-set stl+=%3*%{LintStatusLine()}           " Color 3: Linter
 set stl+=\ %3*\ %=%-7.(%l,%c%V%)          " Color 3: Row & column
 set stl+=\                                " Extra space
 
 
-" Fix weird quickfix statusline
+" Quickfix settings
 autocmd BufNewFile,BufWinEnter quickfix
   \   let &l:stl = '%1* quickfix%3*%=%-14.(%l,%c%V%)%P '
   \ | nnoremap <silent><buffer> q :cclose<CR>
@@ -107,8 +95,6 @@ nnoremap <silent> <C-n> <C-w><C-w>
 
 " Quick save
 nnoremap <silent> <space>w :update<CR>
-inoremap <silent> <C-s>    <C-O>:update<cr>
-noremap  <silent> <C-s>    :update<cr>
 
 " Redraw and clear highlighted search matches
 noremap <silent> <C-l> :nohl<CR>:set nopaste<CR><C-l>
@@ -118,9 +104,9 @@ command! TrimBuffer %s/\s\+$//
 
 " Netrw settings
 autocmd FileType netrw
-  \ noremap <buffer><nowait> q :bd<CR>
+  \   setl bufhidden=wipe
+  \ | noremap <buffer><nowait> q :bd<CR>
 let g:netrw_banner = 0
-let g:netrw_browsex_viewer = 'xdg-open'
 
 " Help settings
 autocmd FileType help
@@ -137,104 +123,41 @@ function! s:complete_braces()
 endfunction
 inoremap <buffer><expr><CR> "\<CR>" . <SID>complete_braces()
 
-" Start ranger and open the chosen file
-function! s:ranger()
-  exec "silent !ranger --choosefiles=/tmp/chosenfile --selectfile="
-        \ . expand("%:p")
-  if filereadable('/tmp/chosenfile')
-    exec system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
-    exec 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')
-    exec 'edit ' . system('head -n1 /tmp/chosenfile')
-    call system('rm -f /tmp/chosenfile')
-  endif
-  redraw!
-endfunction
-nnoremap <silent> - :call <SID>ranger()<CR>
-
-" Show buffer outline
-function! s:outline_format(lists)
-  for list in a:lists
-    let linenr = list[2][:len(list[2])-3]
-    let line = getline(linenr)
-    let idx = stridx(line, list[0])
-    let len = len(list[0])
-    let fg = synIDattr(synIDtrans(hlID("LineNr")), 'fg', 'cterm')
-    let bg = synIDattr(synIDtrans(hlID("LineNr")), 'bg', 'cterm')
-    let list[0] = ''
-          \ . printf("\x1b[%sm %4d \x1b[m ", '38;5;'.fg.';48;5;'.bg, linenr)
-          \ . line[:idx-1]
-          \ . printf("\x1b[%sm%s\x1b[m", "34", line[idx:idx+len-1])
-          \ . line[idx+len:]
-    let list = list[:2]
-  endfor
-  return a:lists
-endfunction
-function! s:outline_source(tag_cmds)
-  if !filereadable(expand('%'))
-    throw 'Save the file first'
-  endif
-  for cmd in a:tag_cmds
-    let lines = split(system(cmd), "\n")
-    if !v:shell_error
-      break
+" Open ranger or netrw with '-'
+if executable('ranger')
+  function! s:ranger()
+    exec "silent !ranger --choosefiles=/tmp/chosenfile --selectfile=" . expand("%:p")
+    if filereadable('/tmp/chosenfile')
+      exec system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
+      exec 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')
+      exec 'edit ' . system('head -n1 /tmp/chosenfile')
+      call system('rm -f /tmp/chosenfile')
     endif
-  endfor
-  if v:shell_error
-    throw get(lines, 0, 'Failed to extract tags')
-  elseif empty(lines)
-    throw 'No tags found'
-  endif
-  return map(s:outline_format(map(lines, 'split(v:val, "\t")')), 'join(v:val, "\t")')
-endfunction
-function! s:outline_sink(lines)
-  if !empty(a:lines)
-    let line = a:lines[0]
-    execute split(line, "\t")[2]
-  endif
-endfunction
-function! s:outline(...)
-  let args = copy(a:000)
-  let tag_cmds = [
-    \ printf('ctags -f - --sort=no --excmd=number --language-force=%s %s 2>/dev/null', &filetype, expand('%:S')),
-    \ printf('ctags -f - --sort=no --excmd=number %s 2>/dev/null', expand('%:S'))]
-  try
-    return fzf#run(fzf#wrap('outline', {
-      \ 'source':  s:outline_source(tag_cmds),
-      \ 'sink*':   function('s:outline_sink'),
-      \ 'options': '--tiebreak=index --reverse +m -d "\t" --with-nth=1 -n 1 --ansi --extended --prompt "Outline> "'}))
-  catch
-    echohl WarningMsg
-    echom v:exception
-    echohl None
-  endtry
-endfunction
-command! -bang Outline call s:outline()
-nnoremap <silent> <space>o :Outline<CR>
-
-" Refresh - useful when things go wrong
-function! s:refresh()
-  silent! call mkdir(fnamemodify(tempname(), ":p:h"), "", 0700)
-  set nohlsearch
-  redraw
-  redrawstatus
-endfunction
-command! -bang Refresh call s:refresh()
-nnoremap <silent> <space>r :Refresh<CR>
+    redraw!
+  endfunction
+  nnoremap <silent> - :call <SID>ranger()<CR>
+else
+  nnoremap <silent> - :e .<CR>
+endif
 
 
 call plug#begin('~/.vim/plugged')
 
-Plug 'ConradIrwin/vim-bracketed-paste' " Smarter pasting into vim
-Plug 'dietsche/vim-lastplace'          " Save cursor positing in buffer
 Plug 'adelarsq/vim-matchit'            " Smarter bracket matching
+Plug 'dietsche/vim-lastplace'          " Save cursor position in buffer
 Plug 'mhinz/vim-signify'               " Show changed lines (VCS-backed)
-Plug 'rbgrouleff/bclose.vim'           " Buffer-close (common dependency)
+Plug 'romainl/vim-cool'                " Automatic :nohl
 Plug 'sheerun/vim-polyglot'            " Language pack
 Plug 'tpope/vim-eunuch'                " Useful file management commands
 Plug 'tpope/vim-repeat'                " Smarter . key
 Plug 'tpope/vim-rsi'                   " Readline style mappings in insert mode
 Plug 'tpope/vim-sleuth'                " Heuristically set buffer options
 Plug 'tpope/vim-unimpaired'            " Pairs of handy [ and ] mappings
+
+" Quit buffer using :d
+Plug 'rbgrouleff/bclose.vim'
+cnoreabbrev <silent><expr> d
+  \ getcmdtype() == ":" && getcmdline() == 'd' ? 'Bclose!' : 'd'
 
 " Strip modified lines
 Plug 'tweekmonster/wstrip.vim'
@@ -249,37 +172,17 @@ endfunction
 let base16colorspace = 256
 Plug 'chriskempson/base16-vim', { 'do': function('FixupBase16') }
 
-" Better tab names
-Plug 'gcmt/taboo.vim'
-let g:taboo_tab_format = " %P%m "
-let g:taboo_renamed_tab_format = " %l%m "
-let g:taboo_modified_tab_flag = " ++"
-let g:taboo_close_tabs_label = "X"
-let g:taboo_unnamed_tab_label = "~"
-
-" Git commands
-Plug 'tpope/vim-fugitive'
-autocmd FileType gitcommit
-  \ setl cursorline
-
 " Automatically change current working directory
 Plug 'airblade/vim-rooter'
 let g:rooter_patterns = ['.root', '.git/', '_darcs/', '.hg/', '.bzr/', '.svn/']
-let g:rooter_cd_cmd = "lcd"
+let g:rooter_cd_cmd = 'lcd'
 let g:rooter_silent_chdir = 1
 
-" Yank history (use C-p/C-n after pasting)
+" Yank history (use C-p after pasting)
 Plug 'vim-scripts/YankRing.vim'
 let g:yankring_history_dir = '~/.vim'
 let g:yankring_replace_n_nkey = ''
-
-" Automatic :nohl command
-Plug 'junegunn/vim-slash'
-
-" Quit buffer using :d command
-Plug 'mhinz/vim-sayonara'
-cnoreabbrev <silent><expr> d
-  \ getcmdtype() == ":" && getcmdline() == 'd' ? 'Sayonara!' : 'd'
+let g:yankring_n_keys = ''
 
 " Preview search-and-replace
 Plug 'markonm/traces.vim'
@@ -312,54 +215,141 @@ Plug 'junegunn/fzf', { 'dir': '~/.fzf' }
 Plug 'junegunn/fzf.vim'
 let g:fzf_layout = {}
 let g:fzf_buffers_jump = 1
+let g:fzf_preview_window = ['up:50%', 'ctrl-/']
 nnoremap <silent> <C-j> :Buffers<CR>
 nnoremap <silent> <C-k> :Buffers<CR>
-nnoremap <silent> <space>a :Ag<CR>
 nnoremap <silent> <space>e :Files<CR>
 nnoremap <silent> <space>l :BLines<CR>
 nnoremap <silent> <space>h :History<CR>
 nnoremap <silent> <space>; :Commands<CR>
 nnoremap <silent> <space>: :Commands<CR>
 nnoremap <silent> <space>` :Marks<CR>
+if executable('ag')
+  nnoremap <space>g :Ag<Space>
+elseif executable('rg')
+  nnoremap <space>g :Rg<Space>
+else
+  nnoremap <space>g :Grep<Space>
+endif
+command! -bang -nargs=* Grep
+  \ call fzf#vim#grep(
+  \   'grep --line-number --line-buffered --color=always -r '.shellescape(<q-args>).' .',
+  \   0, fzf#vim#with_preview({'dir': '.'}), <bang>0)
+
 
 " Real-time linting
-Plug 'w0rp/ale'
-let g:ale_lint_on_text_changed = 'never'
-let g:ale_lint_on_enter = 0
-let g:ale_cpp_clangcheck_options = '-std=c++14'
-nmap ]w <plug>(ale_next_wrap)
-nmap [w <plug>(ale_previous_wrap)
-hi link ALEError Default
-hi link ALEWarning Default
-let g:ale_rust_cargo_use_clippy = 0
+" Plug 'w0rp/ale'
+" let g:ale_lint_on_text_changed = 'never'
+" let g:ale_lint_on_enter = 0
+" let g:ale_cpp_clangcheck_options = '-std=c++14'
+" nmap ]w <plug>(ale_next_wrap)
+" nmap [w <plug>(ale_previous_wrap)
+" hi link ALEError Default
+" hi link ALEWarning Default
+" let g:ale_rust_cargo_use_clippy = 0
+" let g:ale_linters = {
+" 	\ 'go': ['gopls'],
+" 	\ 'rust': ['analyzer'],
+" 	\}
+" let g:ale_set_quickfix = 1
+" let g:ale_open_list = 1
+" let g:ale_hover_to_preview = 0
+" let g:ale_set_balloons = 1
 
-" Automatic tag file generation
-Plug 'ludovicchabant/vim-gutentags'
-let g:gutentags_project_root = ['.root']
-let g:gutentags_ctags_exclude = ['*CMakeFiles*', '.ycm_extra_conf.py']
+
+
+
+" Plug 'autozimu/LanguageClient-neovim', {
+"     \ 'branch': 'next',
+"     \ 'do': 'bash install.sh',
+"     \ }
+" let g:LanguageClient_serverCommands = {
+" \ 'go': ['gopls'],
+" \ 'rust': ['rust-analyzer'],
+" \ }
+" let g:LanguageClient_usePopupHover = 0
+" let g:LanguageClient_preferredMarkupKind = ['plaintext']
+" nmap <silent> <space>j :call LanguageClient#textDocument_definition()<CR>
+" nmap <silent> <space>k :call LanguageClient#textDocument_hover()<CR>
+" set completeopt+=preview
+" set completeopt+=menuone,noselect,noinsert
+" set completefunc=LanguageClient#complete
+" " autocmd CompleteDone * pclose
+" set previewheight=7
+" set splitbelow
+" noremap <silent> <C-l> :pclose<CR>:nohl<CR>:set nopaste<CR><C-l>
+" autocmd BufNewFile,BufWinEnter *
+"   \   if &previewwindow
+"   \ |   nnoremap <silent><buffer> q :pclose<CR>
+"   \ | endif
+
+
+
 
 " Completion engine
-Plug 'Valloric/YouCompleteMe',
-      \ { 'do': './install.py --clang-completer --rust-completer --go-completer' }
-augroup load_ycm
-  " Load plugin when entering insert mode.
-  au! InsertEnter *
-    \   call plug#load('YouCompleteMe')
-    \ | call youcompleteme#Enable()
-    \ | setl formatoptions-=o
-    \ | au! load_ycm
-augroup END
-let g:ycm_confirm_extra_conf = 0
-let g:ycm_show_diagnostics_ui = 0
-let g:ycm_enable_diagnostic_signs = 0
-let g:ycm_enable_diagnostic_highlighting = 0
-let g:ycm_echo_current_diagnostic = 0
-let g:ycm_key_list_select_completion = ['<C-n>', '<Down>', '<Tab>']
-let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>', '<S-Tab>']
-map <silent> <space>j :YcmCompleter GoTo<CR>
+" Plug 'Valloric/YouCompleteMe',
+"       \ { 'do': './install.py --clang-completer --rust-completer --go-completer' }
+" augroup load_ycm
+"   " Load plugin when entering insert mode.
+"   au! InsertEnter *
+"     \   call plug#load('YouCompleteMe')
+"     \ | call youcompleteme#Enable()
+"     \ | setl formatoptions-=o
+"     \ | au! load_ycm
+" augroup END
+" let g:ycm_confirm_extra_conf = 0
+" let g:ycm_show_diagnostics_ui = 0
+" let g:ycm_enable_diagnostic_signs = 0
+" let g:ycm_enable_diagnostic_highlighting = 0
+" let g:ycm_echo_current_diagnostic = 0
+" let g:ycm_key_list_select_completion = ['<C-n>', '<Down>', '<Tab>']
+" let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>', '<S-Tab>']
+" map <silent> <space>j :YcmCompleter GoTo<CR>
 
-" Vimscript
-Plug 'Shougo/neco-vim'
+
+
+
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+
+inoremap <silent><expr> <TAB>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ coc#refresh()
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+
+function! s:check_back_space() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
+
+" Use <c-space> to trigger completion.
+if has('nvim')
+  inoremap <silent><expr> <c-space> coc#refresh()
+else
+  inoremap <silent><expr> <c-@> coc#refresh()
+endif
+
+" Make <CR> auto-select the first completion item and notify coc.nvim to
+" format on enter, <cr> could be remapped by other vim plugin
+inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm()
+  \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+
+function! s:show_documentation()
+  if (index(['vim','help'], &filetype) >= 0)
+    execute 'h '.expand('<cword>')
+  elseif (coc#rpc#ready())
+    call CocActionAsync('doHover')
+  else
+    execute '!' . &keywordprg . " " . expand('<cword>')
+  endif
+endfunction
+
+nmap <silent> <space>j <Plug>(coc-definition)
+nmap <silent> <space>k :call <SID>show_documentation()<CR>
+
+
+
+
 
 " Shell scripts
 autocmd FileType sh
@@ -370,36 +360,14 @@ Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 let g:go_doc_keywordprg_enabled = 0
 autocmd FileType go
   \   setl colorcolumn=80
+  \ | inoremap <buffer><expr><CR> "\<CR>" . <SID>complete_braces()
 
 " Rust language
 Plug 'rust-lang/rust.vim'
-Plug 'racer-rust/vim-racer'
-Plug 'sebastianmarkow/deoplete-rust'
-let g:deoplete#sources#rust#disable_keymap = 1
-let g:racer_experimental_completer = 1
-let g:racer_no_default_keymappings = 1
-let g:tagbar_type_rust = {
-  \   'ctagstype' : 'rust',
-  \   'sort' : '0',
-  \   'kinds' : [ 'm:modules', 'c:consts', 'T:types', 'g:enums',
-  \               's:structs', 't:traits', 'i:impls', 'f:functions' ]
-  \ }
 autocmd FileType rust
   \   setl colorcolumn=100
   \ | setl sw=4 ts=4 expandtab
-  \ | compiler cargo
   \ | inoremap <buffer><expr><CR> "\<CR>" . <SID>complete_braces()
-
-" C++ language
-Plug 'octol/vim-cpp-enhanced-highlight'
-set cinoptions+=g1 " Indent scope declarations by 1 space
-set cinoptions+=h1 " Indent stuff after scope declarations by 1 more space
-autocmd FileType c,cpp
-  \   setl shiftwidth=4 tabstop=4
-
-" Java language
-autocmd FileType java
-  \   setl colorcolumn=100
 
 " Python language
 autocmd FileType python
