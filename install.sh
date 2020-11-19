@@ -2,6 +2,11 @@
 
 # curl -sSf https://raw.githubusercontent.com/stjepang/dotfiles/master/install.sh | bash
 
+if [ ! -n "$BASH" ]; then
+  echo 'Error: current shell is not bash.' >&2
+  exit 1
+fi
+
 cd "$HOME"
 export GIT_TERMINAL_PROMPT=0
 
