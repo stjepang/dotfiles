@@ -15,11 +15,6 @@ if ! [ -x "$(command -v vim)" ]; then
   exit 1
 fi
 
-if ! [ -d "$HOME/.fzf" ]; then
-  git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf || exit 1
-  ~/.fzf/install --all --no-zsh --no-fish || exit 1
-fi
-
 if ! [ -d "$HOME/dotfiles" ]; then
   git clone --depth 1 \
     https://github.com/stjepang/dotfiles.git ~/dotfiles || exit 1
@@ -35,6 +30,12 @@ append_line() {
 append_line ~/.bashrc 'source ~/dotfiles/bashrc'
 append_line ~/.gitconfig '[include] path = ~/dotfiles/gitconfig'
 append_line ~/.vimrc 'source ~/dotfiles/vimrc'
+
+if ! [ -d "$HOME/.fzf" ]; then
+  git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf || exit 1
+  ~/.fzf/install --all --no-zsh --no-fish || exit 1
+fi
+echo "OK: $HOME/.fzf"
 
 if ! [ -x "$(command -v ag)" ]; then
   echo "Note: ag (the_silver_searcher) is not installed."

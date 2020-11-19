@@ -36,12 +36,14 @@ $(\
 \[\e[1;32m\]\$\[\e[m\] '
 
 # Change directory using ranger
-ranger-cd() {
-  ranger --choosedir=/tmp/chosendir "$PWD"
-  [[ "$(cat /tmp/chosendir)" != "$PWD" ]] && cd "$(cat /tmp/chosendir)"
-  rm -f /tmp/chosendir
-}
-bind '"\C-o":"\C-u\C-a\C-kranger-cd\C-m\C-l"'
+if [ -x "$(command -v ranger)" ]; then
+  ranger-cd() {
+    ranger --choosedir=/tmp/chosendir "$PWD"
+    [[ "$(cat /tmp/chosendir)" != "$PWD" ]] && cd "$(cat /tmp/chosendir)"
+    rm -f /tmp/chosendir
+  }
+  bind '"\C-o":"\C-u\C-a\C-kranger-cd\C-m\C-l"'
+fi
 
 # Don't discard Ctrl-O keypresses
 [ "$(uname)" == "Darwin" ] && stty discard undef
@@ -49,7 +51,6 @@ bind '"\C-o":"\C-u\C-a\C-kranger-cd\C-m\C-l"'
 # FZF options
 export FZF_TMUX=0
 export FZF_DEFAULT_OPTS='-e --preview-window=up:50% --bind=ctrl-/:toggle-preview'
-export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow --glob "!.git/*"'
 
 # Load color theme
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"

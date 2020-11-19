@@ -123,7 +123,7 @@ let g:rooter_silent_chdir = 1
 packadd vim-rooter
 
 " Yank history (use C-p after pasting)
-let g:yankring_history_dir = '~/.vim'
+let g:yankring_history_dir = '/tmp'
 let g:yankring_replace_n_nkey = ''
 let g:yankring_n_keys = ''
 packadd YankRing.vim
