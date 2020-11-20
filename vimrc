@@ -180,7 +180,8 @@ if executable('fzf')
   endif
   command! -bang -nargs=* Grep
     \ call fzf#vim#grep(
-    \   'grep --line-number --line-buffered --color=always -r ' . shellescape(<q-args>).' .',
+    \   'grep --line-number --line-buffered --color=always -r '
+    \     . shellescape(<q-args>).' .',
     \   0,
     \   fzf#vim#with_preview({'dir': '.'}),
     \   <bang>0)
@@ -190,48 +191,60 @@ endif
 " To debug colors, try this:
 "   :highlight
 "   :runtime syntax/colortest.vim
-let base16colorspace = 256
-packadd base16-vim
-colorscheme base16-tomorrow
-syntax on
-set background=dark
+if trim(system('tput colors')) == '8'
+  set ruler
+  set background=dark
+  colorscheme zellner
+else
+  set background=dark
+  let base16colorspace = 256
+  packadd base16-vim
+  colorscheme base16-tomorrow
+  syntax on
 
-" General GUI colors
-hi CursorLine ctermbg=19
-hi TabLine ctermbg=18 ctermfg=20
-hi TabLineFill ctermbg=18 ctermfg=20
-hi TabLineSel ctermbg=19 ctermfg=16 cterm=bold
-hi VertSplit ctermbg=0 ctermfg=19
-hi WildMenu ctermbg=18 ctermfg=16 cterm=bold
-hi Search ctermbg=0 ctermfg=15 cterm=bold
-hi IncSearch ctermbg=9 ctermfg=15 cterm=bold
-hi MatchParen ctermbg=0 ctermfg=15 cterm=bold,underline
-hi SpellRare ctermbg=0 cterm=undercurl
+  " General GUI
+  hi CursorLine ctermbg=19
+  hi TabLine ctermbg=18 ctermfg=20
+  hi TabLineFill ctermbg=18 ctermfg=20
+  hi TabLineSel ctermbg=19 ctermfg=16 cterm=bold
+  hi VertSplit ctermbg=0 ctermfg=19
+  hi WildMenu ctermbg=18 ctermfg=16 cterm=bold
+  hi Search ctermbg=0 ctermfg=15 cterm=bold
+  hi IncSearch ctermbg=9 ctermfg=15 cterm=bold
+  hi MatchParen ctermbg=0 ctermfg=15 cterm=bold,underline
+  hi SpellRare ctermbg=0 cterm=undercurl
 
-" Completion popup colors
-hi Pmenu ctermbg=19 ctermfg=7
-hi PmenuSel ctermbg=17 ctermfg=15
-hi PmenuSbar ctermbg=19 ctermfg=19
-hi PmenuThumb ctermbg=8 ctermfg=8
+  " Completion popup
+  hi Pmenu ctermbg=19 ctermfg=7
+  hi PmenuSel ctermbg=17 ctermfg=15
+  hi PmenuSbar ctermbg=19 ctermfg=19
+  hi PmenuThumb ctermbg=8 ctermfg=8
 
-" Statusline format
-set stl=\                                 " Start with a space
-set stl+=%1*%{!empty(@%)?@%:&ro?'':'~'}\  " Color 1: File name or ~ if empty
-set stl+=%2*%{&mod?'++':'\ \ '}\ \        " Color 2: Add ++ if modified
-set stl+=\ %3*\ %=%-7.(%l,%c%V%)          " Color 3: Row & column
-set stl+=\                                " Extra space
-hi def User1 ctermbg=18 ctermfg=20 cterm=bold
-hi def User2 ctermbg=18 ctermfg=1 cterm=bold
-hi def User3 ctermbg=18 ctermfg=20
-hi StatusLine ctermbg=18 ctermfg=20
-hi StatusLineNC ctermbg=18 ctermfg=8
+  " Statusline
+  set stl=\                                 " Start with a space
+  set stl+=%1*%{!empty(@%)?@%:&ro?'':'~'}\  " Color 1: File name or ~ if empty
+  set stl+=%2*%{&mod?'++':'\ \ '}\ \        " Color 2: Add ++ if modified
+  set stl+=\ %3*\ %=%-7.(%l,%c%V%)          " Color 3: Row & column
+  set stl+=\                                " Extra space
+  hi def User1 ctermbg=18 ctermfg=20 cterm=bold
+  hi def User2 ctermbg=18 ctermfg=1 cterm=bold
+  hi def User3 ctermbg=18 ctermfg=20
+  hi StatusLine ctermbg=18 ctermfg=20
+  hi StatusLineNC ctermbg=18 ctermfg=8
+endif
 
-" Complete braces on <CR> in a sensible way
+" Complete brackets on <CR>{ and <CR>[
 function! s:complete_braces()
   let line = getline('.')
   let col = col('.')
-  if col < 1000 && col == len(line) + 1 && matchstr(line, '\%' . (col-1) . 'c.') == '{'
-    return "}\<C-o>k\<C-o>A\<CR>"
+  if col < 1000 && col == len(line) + 1
+    let c = matchstr(line, '\%' . (col-1) . 'c.')
+    if c == '{'
+      return "}\<C-o>k\<C-o>A\<CR>"
+    endif
+    if c == '['
+      return "]\<C-o>k\<C-o>A\<CR>"
+    endif
   endif
   return ""
 endfunction
@@ -245,16 +258,25 @@ packadd vim-polyglot
 autocmd FileType sh
   \ setl sw=4 ts=4 expandtab
 
-" Rust language
+" Golang
+let g:go_doc_keywordprg_enabled = 0
+packadd vim-go
+autocmd FileType go
+  \   setl colorcolumn=80
+  \ | nnoremap <silent> <space>f :GoFmt<CR>
+
+" Rust
+let g:rustfmt_options = '--edition 2018'
 autocmd FileType rust
   \   setl colorcolumn=100
   \ | setl sw=4 ts=4 expandtab
+  \ | nnoremap <silent> <space>f :RustFmt<CR>
 
-" Python language
+" Python
 autocmd FileType python
   \   setl colorcolumn=79
 
-" Toml configuration language
+" Toml
 autocmd FileType toml
   \   setl shiftwidth=2 tabstop=2
 
@@ -264,18 +286,7 @@ autocmd FileType toml
 
 
 
-
 call plug#begin('~/.vim/plugged')
-
-" Code formatting
-let g:neoformat_rust_rustfmt = {
-  \ 'exe': 'rustfmt',
-  \ 'args': ['--edition', '2018', '--unstable-features'],
-  \ 'stdin': 1,
-  \ }
-Plug 'sbdchd/neoformat'
-nnoremap <silent> <space>f :Neoformat<CR>
-vnoremap <silent> <space>f :Neoformat<CR>
 
 
 " Real-time linting
@@ -390,13 +401,5 @@ nmap <silent> <space>k :call <SID>show_documentation()<CR>
 
 
 
-
-
-
-" Go language
-Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
-let g:go_doc_keywordprg_enabled = 0
-autocmd FileType go
-  \   setl colorcolumn=80
 
 call plug#end()
