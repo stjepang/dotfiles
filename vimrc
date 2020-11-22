@@ -1,3 +1,5 @@
+let &packpath .= ',' . expand('<sfile>:p:h') " Plugins directory
+
 set hidden            " Hide abandoned buffers, don't unload
 set mouse=a           " Enable mouse
 set history=10000     " Long command history
@@ -13,11 +15,18 @@ set undofile         " Keep persistent undo
 set undodir=/tmp     " Where to store undo files
 set undolevels=10000 " Long undo history
 
-set number         " Show number line
-set confirm        " Ask to save changes
-set wildmenu       " Better command completion
-set wildignorecase " Ignore case in command completion
-set laststatus=2   " Always show statusline
+set number                " Show number line
+set confirm               " Ask to save changes
+set wildmenu              " Better command completion
+set wildignorecase        " Ignore case in command completion
+set laststatus=2          " Always show status line
+set splitbelow            " Put new split window below current one
+set completeopt=          " Clear completion options
+set completeopt+=menu     " Use popup menu
+set completeopt+=menuone  " Use popup menu even if only one match
+set completeopt+=preview  " Show extra info in preview window
+set completeopt+=noinsert " Don't insert text initially
+set completeopt+=noselect " Don't select a match initially
 
 set nowrap                 " Don't wrap lines
 set whichwrap+=<,>,[,],h,l " Arrow keys and h/l wrap over lines
@@ -44,46 +53,57 @@ set autoindent         " Automatically indent when starting a new line
 set list               " Enable list mode
 set listchars=tab:\ \  " Represent tab character as spaces
 
-let &packpath.=','.expand('<sfile>:p:h') " Where plugins are stored
+" Help
+autocmd FileType help nnoremap <buffer><nowait> q :q<CR>
 
-" Help settings
-autocmd FileType help
-  \ noremap <buffer><nowait> q :q<CR>
-
-" Netrw settings
+" Netrw
 let g:netrw_banner = 0
-autocmd FileType netrw
-  \   setl bufhidden=wipe
-  \ | noremap <buffer><nowait> q :bd<CR>
+autocmd FileType netrw setl bufhidden=wipe
+autocmd FileType netrw nnoremap <buffer><nowait> q :setl bufhidden=wipe<CR>:bd<CR>
 
-" Quickfix settings
-autocmd BufNewFile,BufWinEnter quickfix
-  \   let &l:stl = '%1* quickfix%3*%=%-14.(%l,%c%V%)%P '
-  \ | nnoremap <silent><buffer> q :cclose<CR>
+" Quickfix
+nnoremap <silent> <space>q :copen<CR>
+autocmd BufNewFile,BufWinEnter quickfix let &l:stl = '%1* quickfix%=%5*%l '
+autocmd FileType qf nnoremap <silent><buffer> q :cclose<CR>
+autocmd FileType qf setl nonumber
+autocmd FileType qf call QuickfixAdjust(3, 10)
+function! QuickfixAdjust(minheight, maxheight)
+  exe max([min([line("$"), a:maxheight]), a:minheight]) . "wincmd _"
+endfunction
+
+" Preview window
+set previewheight=10
+autocmd WinEnter *
+  \   if &previewwindow
+  \ |   setl wrap
+  \ |   nnoremap <silent><buffer> q :pclose<CR>
+  \ | endif
+
+" Skip the C-x completion prefix
+inoremap <C-o> <C-x><C-o>
+inoremap <C-f> <C-x><C-f>
 
 " Don't start a new comment after opening a new line below a comment
-autocmd BufNewFile,BufWinEnter *
-  \ setl formatoptions-=o
+autocmd BufNewFile,BufWinEnter * setl formatoptions-=o
 
 " Convenience mapping for colon
-noremap ; :
+nnoremap ; :
 
-" Disable ex mode
+" Disable Ex mode
 nnoremap Q <nop>
 
 " Extended yank/paste mappings
-noremap Y y$
-noremap <space>Y "+y$
-noremap <space>y "+y
-noremap <space>y "+y
-noremap <silent> <space>p :set paste<CR>"+p:set nopaste<CR>
-noremap <silent> <space>P :set paste<CR>"+P:set nopaste<CR>
+nnoremap Y y$
+nnoremap <space>Y "+y$
+onoremap <space>y "+y
+onoremap <space>p "+p
+onoremap <space>P "+P
 
 " j/k moves up/down row by row, not line by line
 noremap j gj
 noremap k gk
 
-" Fast jumping up/down
+" Fast jump up/down
 noremap J 5gj
 noremap K 5gk
 
@@ -101,11 +121,24 @@ nnoremap <silent> <C-n> <C-w><C-w>
 nnoremap <silent> <space>w :update<CR>
 
 " Simple reset when things go wrong
-noremap <silent> <C-l> :nohl<CR>:set nopaste<CR><C-l>
+nnoremap <silent> <C-l> :pclose<CR>:nohl<CR>:set nopaste<CR><C-l>
 
-" Quit buffer using :d
+" Delete buffer using :d
 cnoreabbrev <silent><expr> d
-  \ getcmdtype() == ":" && getcmdline() == 'd' ? 'Bclose!' : 'd'
+  \ getcmdtype() == ":" && getcmdline() == 'd' ? 'Sayonara!' : 'd'
+
+" Close brackets on <CR>{ and <CR>[
+function! s:close_brackets()
+  let line = getline('.')
+  let c = len(line) == 0 ? '' : line[len(line)-1]
+  if c == '{'
+    return "}\<C-o>k\<C-o>A\<CR>"
+  elseif c == '['
+    return "]\<C-o>k\<C-o>A\<CR>"
+  endif
+  return ""
+endfunction
+inoremap <expr> <CR> "\<CR>" . <SID>close_brackets()
 
 " Strip changed lines
 let g:wstrip_auto = 1
@@ -114,6 +147,7 @@ packadd wstrip.vim
 autocmd FileType gitconfig let b:wstrip_auto = 0
 
 " Show changed lines in version control
+let g:signify_priority = 1
 packadd vim-signify
 
 " Automatically set current directory
@@ -132,21 +166,22 @@ packadd YankRing.vim
 let g:tcomment_maps = 0
 packadd tcomment_vim
 nnoremap <silent> t :TComment<CR>j
-vnoremap <silent> t :TComment<CR>
+xnoremap <silent> t :TComment<CR>
 
 " Undo tree
 let g:undotree_SetFocusWhenToggle = 1
 let g:undotree_WindowLayout = 3
-noremap <silent> U :packadd undotree<CR>:UndotreeToggle<CR>
+packadd undotree
+nnoremap <silent> U :UndotreeToggle<CR>
 
 " Open ranger or netrw using - key
 if executable('ranger')
   function! s:ranger()
-    exec "silent !ranger --choosefiles=/tmp/chosenfile --selectfile=" . expand("%:p")
+    exe "silent !ranger --choosefiles=/tmp/chosenfile --selectfile=" . expand("%:p")
     if filereadable('/tmp/chosenfile')
-      exec system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
-      exec 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')
-      exec 'edit ' . system('head -n1 /tmp/chosenfile')
+      exe system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
+      exe 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')
+      exe 'edit ' . system('head -n1 /tmp/chosenfile')
       call system('rm -f /tmp/chosenfile')
     endif
     redraw!
@@ -171,12 +206,15 @@ if executable('fzf')
   nnoremap <silent> <space>; :Commands<CR>
   nnoremap <silent> <space>: :Commands<CR>
   nnoremap <silent> <space>` :Marks<CR>
-  if executable('ag')
-    nnoremap <space>g :Ag<Space>
-  elseif executable('rg')
-    nnoremap <space>g :Rg<Space>
+  if executable('rg')
+    nnoremap <expr> <space>g ':Rg '.expand('<cword>')
+    xnoremap <space>g "zy:Rg <C-r>z
+  elseif executable('ag')
+    nnoremap <expr> <space>g ':Ag '.expand('<cword>')
+    xnoremap <space>g "zy:Ag <C-r>z
   else
-    nnoremap <space>g :Grep<Space>
+    nnoremap <expr> <space>g ':Grep '.expand('<cword>')
+    xnoremap <space>g "zy:Grep <C-r>z
   endif
   command! -bang -nargs=* Grep
     \ call fzf#vim#grep(
@@ -188,30 +226,33 @@ if executable('fzf')
 endif
 
 " Color theme
-" To debug colors, try this:
-"   :highlight
-"   :runtime syntax/colortest.vim
-if trim(system('tput colors')) == '8'
-  set ruler
-  set background=dark
-  colorscheme zellner
-else
+if trim(system('tput colors')) == '256'
+  " To debug colors, try this:
+  " 1. :highlight
+  " 2. :runtime syntax/colortest.vim
   set background=dark
   let base16colorspace = 256
   packadd base16-vim
   colorscheme base16-tomorrow
   syntax on
 
-  " General GUI
-  hi CursorLine ctermbg=19
+  " GUI
   hi TabLine ctermbg=18 ctermfg=20
   hi TabLineFill ctermbg=18 ctermfg=20
   hi TabLineSel ctermbg=19 ctermfg=16 cterm=bold
   hi VertSplit ctermbg=0 ctermfg=19
   hi WildMenu ctermbg=18 ctermfg=16 cterm=bold
+
+  " Navigation
+  hi CursorLine ctermbg=19
   hi Search ctermbg=0 ctermfg=15 cterm=bold
   hi IncSearch ctermbg=9 ctermfg=15 cterm=bold
   hi MatchParen ctermbg=0 ctermfg=15 cterm=bold,underline
+
+  " Diagnostics
+  hi Error ctermbg=18 ctermfg=1
+  hi ErrorMsg ctermbg=18 ctermfg=1
+  hi WarningMsg ctermbg=18 ctermfg=3
   hi SpellRare ctermbg=0 cterm=undercurl
 
   " Completion popup
@@ -219,187 +260,93 @@ else
   hi PmenuSel ctermbg=17 ctermfg=15
   hi PmenuSbar ctermbg=19 ctermfg=19
   hi PmenuThumb ctermbg=8 ctermfg=8
+else
+  " Fallback colors on 8-bit terminals (e.g. ttys)
+  set ruler
+  set background=dark
+  colorscheme zellner
+endif
 
-  " Statusline
+" Completion/Linting/Formatting
+let g:ale_completion_enabled = 1
+let g:ale_set_quickfix = 1
+let g:ale_set_highlights = 0
+let g:ale_sign_error = '>>'
+let g:ale_sign_warning = '>>'
+hi link ALEErrorSign ErrorMsg
+hi link ALEWarningSign WarningMsg
+let g:ale_fixers = {
+  \   'go': ['goimports'],
+  \   'rust': ['rustfmt'],
+  \ }
+let g:ale_linters = {
+  \   'go': ['gopls'],
+  \   'rust': ['cargo', 'analyzer'],
+  \ }
+let g:ale_rust_cargo_check_tests = 1
+let g:ale_rust_cargo_check_examples = 1
+let g:ale_rust_cargo_default_feature_behavior = 'all'
+packadd ale
+set omnifunc=ale#completion#OmniFunc
+inoremap <expr> <Tab> getline('.')[col('.')-2] =~ '^\_s*$' ? "\<Tab>" :
+  \ pumvisible() ? "\<C-n>" : "\<C-x>\<C-o>"
+inoremap <expr> <S-Tab> getline('.')[col('.')-2] =~ '^\_s*$' ? "\<Tab>" :
+  \ pumvisible() ? "\<C-p>" : "\<S-Tab>"
+autocmd CompleteDone * silent! pclose
+nnoremap <silent> <space>j :ALEGoToDefinition<CR>
+nnoremap <silent> <space>k :ALEHover<CR>
+nnoremap <silent> <space>f :ALEFix<CR>
+nnoremap <silent> <space>r :ALEResetBuffer<CR>:ALELint<CR>
+
+" Status line
+if trim(system('tput colors')) == '256'
   set stl=\                                 " Start with a space
   set stl+=%1*%{!empty(@%)?@%:&ro?'':'~'}\  " Color 1: File name or ~ if empty
   set stl+=%2*%{&mod?'++':'\ \ '}\ \        " Color 2: Add ++ if modified
-  set stl+=\ %3*\ %=%-7.(%l,%c%V%)          " Color 3: Row & column
+  set stl+=%=                               " Align right
+  set stl+=%3*%{ErrorCount()}               " Color 3: Errors
+  set stl+=%4*%{WarningCount()}             " Color 4: Warnings
+  set stl+=\ %5*\ %-6.(%l,%c%V%)            " Color 5: Row & column
   set stl+=\                                " Extra space
+
   hi def User1 ctermbg=18 ctermfg=20 cterm=bold
   hi def User2 ctermbg=18 ctermfg=1 cterm=bold
-  hi def User3 ctermbg=18 ctermfg=20
+  hi def User3 ctermbg=18 ctermfg=1
+  hi def User4 ctermbg=18 ctermfg=3
+  hi def User5 ctermbg=18 ctermfg=20
   hi StatusLine ctermbg=18 ctermfg=20
   hi StatusLineNC ctermbg=18 ctermfg=8
-endif
 
-" Complete brackets on <CR>{ and <CR>[
-function! s:complete_braces()
-  let line = getline('.')
-  let col = col('.')
-  if col < 1000 && col == len(line) + 1
-    let c = matchstr(line, '\%' . (col-1) . 'c.')
-    if c == '{'
-      return "}\<C-o>k\<C-o>A\<CR>"
-    endif
-    if c == '['
-      return "]\<C-o>k\<C-o>A\<CR>"
-    endif
-  endif
-  return ""
-endfunction
-inoremap <buffer><expr><CR> "\<CR>" . <SID>complete_braces()
+  function! ErrorCount()
+    let counts = ale#statusline#Count(bufnr(''))
+    let n = counts.error + counts.style_error
+    return n == 0 ? '' : n . ' '
+  endfunction
+  function! WarningCount()
+    let l:counts = ale#statusline#Count(bufnr(''))
+    let n = counts.warning + counts.style_warning
+    return n == 0 ? '' : n . ' '
+  endfunction
+  autocmd User ALELintPost redrawstatus
+endif
 
 " Language pack
 let g:polyglot_disabled = ['sh']
 packadd vim-polyglot
 
 " Shell scripts
-autocmd FileType sh
-  \ setl sw=4 ts=4 expandtab
+autocmd FileType sh setl shiftwidth=4 tabstop=4 expandtab
 
 " Golang
 let g:go_doc_keywordprg_enabled = 0
-packadd vim-go
-autocmd FileType go
-  \   setl colorcolumn=80
-  \ | nnoremap <silent> <space>f :GoFmt<CR>
+autocmd FileType go setl colorcolumn=80
 
 " Rust
-let g:rustfmt_options = '--edition 2018'
-autocmd FileType rust
-  \   setl colorcolumn=100
-  \ | setl sw=4 ts=4 expandtab
-  \ | nnoremap <silent> <space>f :RustFmt<CR>
+autocmd FileType rust setl colorcolumn=100
+autocmd FileType rust setl shiftwidth=4 tabstop=4 expandtab
 
 " Python
-autocmd FileType python
-  \   setl colorcolumn=79
+autocmd FileType python setl colorcolumn=79
 
 " Toml
-autocmd FileType toml
-  \   setl shiftwidth=2 tabstop=2
-
-
-
-
-
-
-
-call plug#begin('~/.vim/plugged')
-
-
-" Real-time linting
-" Plug 'w0rp/ale'
-" let g:ale_lint_on_text_changed = 'never'
-" let g:ale_lint_on_enter = 0
-" let g:ale_cpp_clangcheck_options = '-std=c++14'
-" nmap ]w <plug>(ale_next_wrap)
-" nmap [w <plug>(ale_previous_wrap)
-" hi link ALEError Default
-" hi link ALEWarning Default
-" let g:ale_rust_cargo_use_clippy = 0
-" let g:ale_linters = {
-" 	\ 'go': ['gopls'],
-" 	\ 'rust': ['analyzer'],
-" 	\}
-" let g:ale_set_quickfix = 1
-" let g:ale_open_list = 1
-" let g:ale_hover_to_preview = 0
-" let g:ale_set_balloons = 1
-
-
-
-
-" Plug 'autozimu/LanguageClient-neovim', {
-"     \ 'branch': 'next',
-"     \ 'do': 'bash install.sh',
-"     \ }
-" let g:LanguageClient_serverCommands = {
-" \ 'go': ['gopls'],
-" \ 'rust': ['rust-analyzer'],
-" \ }
-" let g:LanguageClient_usePopupHover = 0
-" let g:LanguageClient_preferredMarkupKind = ['plaintext']
-" nmap <silent> <space>j :call LanguageClient#textDocument_definition()<CR>
-" nmap <silent> <space>k :call LanguageClient#textDocument_hover()<CR>
-" set completeopt+=preview
-" set completeopt+=menuone,noselect,noinsert
-" set completefunc=LanguageClient#complete
-" " autocmd CompleteDone * pclose
-" set previewheight=7
-" set splitbelow
-" noremap <silent> <C-l> :pclose<CR>:nohl<CR>:set nopaste<CR><C-l>
-" autocmd BufNewFile,BufWinEnter *
-"   \   if &previewwindow
-"   \ |   nnoremap <silent><buffer> q :pclose<CR>
-"   \ | endif
-
-
-
-
-" Completion engine
-" Plug 'Valloric/YouCompleteMe',
-"       \ { 'do': './install.py --clang-completer --rust-completer --go-completer' }
-" augroup load_ycm
-"   " Load plugin when entering insert mode.
-"   au! InsertEnter *
-"     \   call plug#load('YouCompleteMe')
-"     \ | call youcompleteme#Enable()
-"     \ | setl formatoptions-=o
-"     \ | au! load_ycm
-" augroup END
-" let g:ycm_confirm_extra_conf = 0
-" let g:ycm_show_diagnostics_ui = 0
-" let g:ycm_enable_diagnostic_signs = 0
-" let g:ycm_enable_diagnostic_highlighting = 0
-" let g:ycm_echo_current_diagnostic = 0
-" let g:ycm_key_list_select_completion = ['<C-n>', '<Down>', '<Tab>']
-" let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>', '<S-Tab>']
-" map <silent> <space>j :YcmCompleter GoTo<CR>
-
-
-
-
-Plug 'neoclide/coc.nvim', {'branch': 'release'}
-
-inoremap <silent><expr> <TAB>
-      \ pumvisible() ? "\<C-n>" :
-      \ <SID>check_back_space() ? "\<TAB>" :
-      \ coc#refresh()
-inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
-
-function! s:check_back_space() abort
-  let col = col('.') - 1
-  return !col || getline('.')[col - 1]  =~# '\s'
-endfunction
-
-" Use <c-space> to trigger completion.
-if has('nvim')
-  inoremap <silent><expr> <c-space> coc#refresh()
-else
-  inoremap <silent><expr> <c-@> coc#refresh()
-endif
-
-" Make <CR> auto-select the first completion item and notify coc.nvim to
-" format on enter, <cr> could be remapped by other vim plugin
-inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm()
-  \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
-
-function! s:show_documentation()
-  if (index(['vim','help'], &filetype) >= 0)
-    execute 'h '.expand('<cword>')
-  elseif (coc#rpc#ready())
-    call CocActionAsync('doHover')
-  else
-    execute '!' . &keywordprg . " " . expand('<cword>')
-  endif
-endfunction
-
-nmap <silent> <space>j <Plug>(coc-definition)
-nmap <silent> <space>k :call <SID>show_documentation()<CR>
-
-
-
-
-call plug#end()
+autocmd FileType toml setl shiftwidth=2 tabstop=2
