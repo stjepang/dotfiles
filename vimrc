@@ -276,11 +276,11 @@ let g:ale_sign_warning = '>>'
 hi link ALEErrorSign ErrorMsg
 hi link ALEWarningSign WarningMsg
 let g:ale_fixers = {
-  \   'go': ['goimports'],
+  \   'go': ['gofmt', 'goimports'],
   \   'rust': ['rustfmt'],
   \ }
 let g:ale_linters = {
-  \   'go': ['gopls'],
+  \   'go': ['gofmt', 'gopls'],
   \   'rust': ['cargo', 'analyzer'],
   \ }
 let g:ale_rust_cargo_check_tests = 1
@@ -335,18 +335,22 @@ let g:polyglot_disabled = ['sh']
 packadd vim-polyglot
 
 " Shell scripts
-autocmd FileType sh setl shiftwidth=4 tabstop=4 expandtab
+autocmd FileType sh setl shiftwidth=4
+autocmd FileType sh setl tabstop=4
+autocmd FileType sh setl expandtab
 
 " Golang
-let g:go_doc_keywordprg_enabled = 0
 autocmd FileType go setl colorcolumn=80
 
 " Rust
 autocmd FileType rust setl colorcolumn=100
-autocmd FileType rust setl shiftwidth=4 tabstop=4 expandtab
+autocmd FileType rust setl shiftwidth=4
+autocmd FileType rust setl tabstop=4
+autocmd FileType rust setl expandtab
 
 " Python
 autocmd FileType python setl colorcolumn=79
 
 " Toml
-autocmd FileType toml setl shiftwidth=2 tabstop=2
+autocmd FileType toml setl shiftwidth=2
+autocmd FileType toml setl tabstop=2
