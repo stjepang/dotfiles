@@ -53,7 +53,5 @@ export FZF_TMUX=0
 export FZF_DEFAULT_OPTS='-e --preview-window=up:50% --bind=ctrl-/:toggle-preview'
 
 # Color theme
-if [ "$(tput colors)" == "256" ]; then
-  DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-  source "$DIR/base16-shell/scripts/base16-tomorrow-night.sh"
-fi
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+source "$DIR/base16-shell/scripts/base16-tomorrow-night.sh"

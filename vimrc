@@ -73,6 +73,7 @@ endfunction
 
 " Preview window
 set previewheight=10
+autocmd CompleteDone * silent! pclose
 autocmd WinEnter *
   \   if &previewwindow
   \ |   setl wrap
@@ -130,15 +131,24 @@ cnoreabbrev <silent><expr> d
 " Close brackets on <CR>{ and <CR>[
 function! s:close_brackets()
   let line = getline('.')
-  let c = len(line) == 0 ? '' : line[len(line)-1]
-  if c == '{'
-    return "}\<C-o>k\<C-o>A\<CR>"
-  elseif c == '['
-    return "]\<C-o>k\<C-o>A\<CR>"
+  let col = col('.')
+  if col < 1000 && col == len(line) + 1
+    let c = matchstr(line, '\%' . (col-1) . 'c.')
+    if c == '{'
+      return "}\<C-o>k\<C-o>A\<CR>"
+    endif
+    if c == '['
+      return "]\<C-o>k\<C-o>A\<CR>"
+    endif
   endif
   return ""
 endfunction
 inoremap <expr> <CR> "\<CR>" . <SID>close_brackets()
+
+" Smart line split/join
+let g:splitjoin_split_mapping = 'gs'
+let g:splitjoin_join_mapping = 'gj'
+packadd splitjoin.vim
 
 " Strip changed lines
 let g:wstrip_auto = 1
@@ -225,130 +235,101 @@ if executable('fzf')
     \   <bang>0)
 endif
 
-" Color theme
-if trim(system('tput colors')) == '256'
-  " To debug colors, try this:
-  " 1. :highlight
-  " 2. :runtime syntax/colortest.vim
-  set background=dark
-  let base16colorspace = 256
-  packadd base16-vim
-  colorscheme base16-tomorrow
-  syntax on
-
-  " GUI
-  hi TabLine ctermbg=18 ctermfg=20
-  hi TabLineFill ctermbg=18 ctermfg=20
-  hi TabLineSel ctermbg=19 ctermfg=16 cterm=bold
-  hi VertSplit ctermbg=0 ctermfg=19
-  hi WildMenu ctermbg=18 ctermfg=16 cterm=bold
-
-  " Navigation
-  hi CursorLine ctermbg=19
-  hi Search ctermbg=0 ctermfg=15 cterm=bold
-  hi IncSearch ctermbg=9 ctermfg=15 cterm=bold
-  hi MatchParen ctermbg=0 ctermfg=15 cterm=bold,underline
-
-  " Diagnostics
-  hi Error ctermbg=18 ctermfg=1
-  hi SpellRare ctermbg=0 cterm=undercurl
-
-  " Completion popup
-  hi Pmenu ctermbg=19 ctermfg=7
-  hi PmenuSel ctermbg=17 ctermfg=15
-  hi PmenuSbar ctermbg=19 ctermfg=19
-  hi PmenuThumb ctermbg=8 ctermfg=8
-else
-  " Fallback colors on 8-bit terminals (e.g. ttys)
-  set ruler
-  set background=dark
-  colorscheme zellner
-endif
+" Color theme (debug with :highlight)
+set background=dark
+let base16colorspace = 256
+packadd base16-vim
+colorscheme base16-tomorrow
+syntax on
+" GUI
+hi TabLine ctermbg=18 ctermfg=20
+hi TabLineFill ctermbg=18 ctermfg=20
+hi TabLineSel ctermbg=19 ctermfg=16 cterm=bold
+hi VertSplit ctermbg=0 ctermfg=19
+hi WildMenu ctermbg=18 ctermfg=16 cterm=bold
+" Navigation
+hi CursorLine ctermbg=19
+hi Search ctermbg=0 ctermfg=15 cterm=bold
+hi IncSearch ctermbg=9 ctermfg=15 cterm=bold
+hi MatchParen ctermbg=0 ctermfg=15 cterm=bold,underline
+" Diagnostics
+hi Error ctermbg=18 ctermfg=1
+hi SpellRare ctermbg=0 cterm=undercurl
+" Completion popup
+hi Pmenu ctermbg=19 ctermfg=7
+hi PmenuSel ctermbg=17 ctermfg=15
+hi PmenuSbar ctermbg=19 ctermfg=19
+hi PmenuThumb ctermbg=8 ctermfg=8
 
 " Completion, linting, and formatting
+let g:ale_fixers = {}
+let g:ale_linters = {}
 let g:ale_completion_enabled = 1
 let g:ale_set_quickfix = 1
 let g:ale_set_highlights = 0
 let g:ale_sign_error = '>>'
 let g:ale_sign_warning = '>>'
-hi link ALEErrorSign ErrorMsg
-hi link ALEWarningSign WarningMsg
-let g:ale_fixers = {
-  \   'go': ['gofmt', 'goimports'],
-  \   'rust': ['rustfmt'],
-  \ }
-let g:ale_linters = {
-  \   'go': ['gofmt', 'gopls'],
-  \   'rust': ['cargo', 'analyzer'],
-  \ }
-let g:ale_rust_cargo_check_tests = 1
-let g:ale_rust_cargo_check_examples = 1
-let g:ale_rust_cargo_default_feature_behavior = 'all'
+hi ALEErrorSign ctermfg=1 ctermbg=18
+hi ALEWarningSign ctermfg=3 ctermbg=18
 packadd ale
 set omnifunc=ale#completion#OmniFunc
 inoremap <expr> <Tab> getline('.')[col('.')-2] =~ '^\_s*$' ? "\<Tab>" :
   \ pumvisible() ? "\<C-n>" : "\<C-x>\<C-o>"
 inoremap <expr> <S-Tab> getline('.')[col('.')-2] =~ '^\_s*$' ? "\<Tab>" :
   \ pumvisible() ? "\<C-p>" : "\<S-Tab>"
-autocmd CompleteDone * silent! pclose
 nnoremap <silent> <space>j :ALEGoToDefinition<CR>
 nnoremap <silent> <space>k :ALEHover<CR>
 nnoremap <silent> <space>f :ALEFix<CR>
-nnoremap <silent> <space>r :ALEResetBuffer<CR>:ALELint<CR>
+nnoremap <silent> <space>r :Sleuth<CR>:ALEResetBuffer<CR>:ALELint<CR>
 
 " Status line
-if trim(system('tput colors')) == '256'
-  set stl=\                                 " Start with a space
-  set stl+=%1*%{!empty(@%)?@%:&ro?'':'~'}\  " Color 1: File name or ~ if empty
-  set stl+=%2*%{&mod?'++':'\ \ '}\ \        " Color 2: Add ++ if modified
-  set stl+=%=                               " Align right
-  set stl+=%3*%{ErrorCount()}               " Color 3: Errors
-  set stl+=%4*%{WarningCount()}             " Color 4: Warnings
-  set stl+=\ %5*\ %-6.(%l,%c%V%)            " Color 5: Row & column
-  set stl+=\                                " Extra space
-
-  hi def User1 ctermbg=18 ctermfg=20 cterm=bold
-  hi def User2 ctermbg=18 ctermfg=1 cterm=bold
-  hi def User3 ctermbg=18 ctermfg=1
-  hi def User4 ctermbg=18 ctermfg=3
-  hi def User5 ctermbg=18 ctermfg=20
-  hi StatusLine ctermbg=18 ctermfg=20
-  hi StatusLineNC ctermbg=18 ctermfg=8
-
-  function! ErrorCount()
-    let counts = ale#statusline#Count(bufnr(''))
-    let n = counts.error + counts.style_error
-    return n == 0 ? '' : n . ' '
-  endfunction
-  function! WarningCount()
-    let l:counts = ale#statusline#Count(bufnr(''))
-    let n = counts.warning + counts.style_warning
-    return n == 0 ? '' : n . ' '
-  endfunction
-  autocmd User ALELintPost redrawstatus
-endif
+set stl=\                                 " Start with a space
+set stl+=%1*%{!empty(@%)?@%:&ro?'':'~'}\  " Color 1: File name or ~ if empty
+set stl+=%2*%{&mod?'++':'\ \ '}\ \        " Color 2: Add ++ if modified
+set stl+=%=                               " Align right
+set stl+=%3*%{ErrorCount()}               " Color 3: Errors
+set stl+=%4*%{WarningCount()}             " Color 4: Warnings
+set stl+=\ %5*\ %-6.(%l,%c%V%)            " Color 5: Row & column
+set stl+=\                                " Extra space
+hi def User1 ctermbg=18 ctermfg=20 cterm=bold
+hi def User2 ctermbg=18 ctermfg=1 cterm=bold
+hi def User3 ctermbg=18 ctermfg=1
+hi def User4 ctermbg=18 ctermfg=3
+hi def User5 ctermbg=18 ctermfg=20
+hi StatusLine ctermbg=18 ctermfg=20
+hi StatusLineNC ctermbg=18 ctermfg=8
+function! ErrorCount()
+  let counts = ale#statusline#Count(bufnr(''))
+  let n = counts.error + counts.style_error
+  return n == 0 ? '' : n . ' '
+endfunction
+function! WarningCount()
+  let l:counts = ale#statusline#Count(bufnr(''))
+  let n = counts.warning + counts.style_warning
+  return n == 0 ? '' : n . ' '
+endfunction
+autocmd User ALELintPost redrawstatus
 
 " Language pack
 let g:polyglot_disabled = ['sh']
 packadd vim-polyglot
 
-" Shell scripts
-autocmd FileType sh setl shiftwidth=4
-autocmd FileType sh setl tabstop=4
-autocmd FileType sh setl expandtab
+" Vimscript
+autocmd FileType vim nnoremap <silent><buffer> <space>k
+  \ :exe 'help '.scriptease#helptopic()<CR>
 
 " Golang
 autocmd FileType go setl colorcolumn=80
+let g:ale_fixers.go = ['gofmt', 'goimports']
+let g:ale_linters.go = ['gofmt', 'gopls']
 
 " Rust
 autocmd FileType rust setl colorcolumn=100
-autocmd FileType rust setl shiftwidth=4
-autocmd FileType rust setl tabstop=4
-autocmd FileType rust setl expandtab
+let g:ale_fixers.rust = ['rustfmt']
+let g:ale_linters.rust = ['cargo', 'analyzer']
+let g:ale_rust_cargo_check_tests = 1
+let g:ale_rust_cargo_check_examples = 1
+let g:ale_rust_cargo_default_feature_behavior = 'all'
 
 " Python
 autocmd FileType python setl colorcolumn=79
-
-" Toml
-autocmd FileType toml setl shiftwidth=2
-autocmd FileType toml setl tabstop=2
