@@ -26,15 +26,20 @@ if ! [ -d "$HOME/dotfiles" ]; then
 fi
 echo "OK: $HOME/dotfiles"
 
-append_line() {
-  if [ ! -f "$1" ] || ! grep -F "$2" "$1" >/dev/null; then
-    echo "$2" >> "$1"
-  fi
+append_lines() {
+  for line in "${@:2}"; do
+    if [ ! -f "$1" ] || ! grep -F "$line" "$1" >/dev/null; then
+      echo "$line" >> "$1"
+    fi
+  done
   echo "OK: $1"
 }
-append_line ~/.bashrc 'source ~/dotfiles/bashrc'
-append_line ~/.gitconfig '[include] path = ~/dotfiles/gitconfig'
-append_line ~/.vimrc 'source ~/dotfiles/vimrc'
+append_lines ~/.bashrc 'source ~/dotfiles/bashrc'
+append_lines ~/.gitconfig '[include] path = ~/dotfiles/gitconfig'
+append_lines ~/.vimrc 'source ~/dotfiles/vimrc'
+append_lines ~/.tmux.conf \
+  'DOTFILES=/Users/stjepan/dotfiles' \
+  'source "$DOTFILES/tmux.conf"'
 
 if ! [ -d "$HOME/.fzf" ]; then
   git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf || exit 1
