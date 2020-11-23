@@ -251,8 +251,6 @@ if trim(system('tput colors')) == '256'
 
   " Diagnostics
   hi Error ctermbg=18 ctermfg=1
-  hi ErrorMsg ctermbg=18 ctermfg=1
-  hi WarningMsg ctermbg=18 ctermfg=3
   hi SpellRare ctermbg=0 cterm=undercurl
 
   " Completion popup
@@ -267,7 +265,7 @@ else
   colorscheme zellner
 endif
 
-" Completion/Linting/Formatting
+" Completion, linting, and formatting
 let g:ale_completion_enabled = 1
 let g:ale_set_quickfix = 1
 let g:ale_set_highlights = 0
