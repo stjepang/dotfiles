@@ -24,7 +24,6 @@ set splitbelow            " Put new split window below current one
 set completeopt=          " Clear completion options
 set completeopt+=menu     " Use popup menu
 set completeopt+=menuone  " Use popup menu even if only one match
-set completeopt+=preview  " Show extra info in preview window
 set completeopt+=noinsert " Don't insert text initially
 set completeopt+=noselect " Don't select a match initially
 
@@ -62,9 +61,21 @@ autocmd FileType netrw setl bufhidden=wipe
 autocmd FileType netrw nnoremap <buffer><nowait> q :setl bufhidden=wipe<CR>:bd<CR>
 
 " Quickfix
-nnoremap <silent> <space>q :copen<CR>
+function! s:quickfix_locate()
+  let v:errmsg = ''
+  silent! cbelow
+  if v:errmsg == ''
+    silent! cabove
+  else
+    silent! cabove
+    silent! below
+  endif
+  normal zz
+endfunction
+nnoremap <silent> <space>q :call <SID>quickfix_locate()<CR>:silent copen<CR>
 autocmd BufNewFile,BufWinEnter quickfix let &l:stl = '%1* quickfix%=%5*%l '
 autocmd FileType qf nnoremap <silent><buffer> q :cclose<CR>
+autocmd FileType qf nnoremap <silent><buffer> <CR> <CR>:cclose<CR>zz
 autocmd FileType qf setl nonumber
 autocmd FileType qf call QuickfixAdjust(3, 10)
 function! QuickfixAdjust(minheight, maxheight)
@@ -77,6 +88,7 @@ autocmd CompleteDone * silent! pclose
 autocmd WinEnter *
   \   if &previewwindow
   \ |   setl wrap
+  \ |   silent! set &l:stl = '%1* preview%=%5*(%l,%c%V%) '
   \ |   nnoremap <silent><buffer> q :pclose<CR>
   \ | endif
 
@@ -86,6 +98,11 @@ inoremap <C-f> <C-x><C-f>
 
 " Don't start a new comment after opening a new line below a comment
 autocmd BufNewFile,BufWinEnter * setl formatoptions-=o
+
+" Some readline-style mappings for insert mode
+inoremap <C-a> <Home>
+inoremap <C-e> <End>
+inoremap <C-d> <Delete>
 
 " Convenience mapping for colon
 nnoremap ; :
@@ -144,11 +161,6 @@ function! s:close_brackets()
   return ""
 endfunction
 inoremap <expr> <CR> "\<CR>" . <SID>close_brackets()
-
-" Smart line split/join
-let g:splitjoin_split_mapping = 'gs'
-let g:splitjoin_join_mapping = 'gj'
-packadd splitjoin.vim
 
 " Strip changed lines
 let g:wstrip_auto = 1
@@ -217,12 +229,15 @@ if executable('fzf')
   nnoremap <silent> <space>: :Commands<CR>
   nnoremap <silent> <space>` :Marks<CR>
   if executable('rg')
-    nnoremap <expr> <space>g ':Rg '.expand('<cword>')
+    nnoremap <space>g :Rg<CR>
+    nnoremap <expr> <space>G ':Rg '.expand('<cword>')
     xnoremap <space>g "zy:Rg <C-r>z
   elseif executable('ag')
+    nnoremap <space>g :Ag<CR>
     nnoremap <expr> <space>g ':Ag '.expand('<cword>')
     xnoremap <space>g "zy:Ag <C-r>z
   else
+    nnoremap <space>g :Grep<CR>
     nnoremap <expr> <space>g ':Grep '.expand('<cword>')
     xnoremap <space>g "zy:Grep <C-r>z
   endif
@@ -260,6 +275,26 @@ hi Pmenu ctermbg=19 ctermfg=7
 hi PmenuSel ctermbg=17 ctermfg=15
 hi PmenuSbar ctermbg=19 ctermfg=19
 hi PmenuThumb ctermbg=8 ctermfg=8
+" Status line
+set stl=\                                 " Start with a space
+set stl+=%1*%{!empty(@%)?@%:&ro?'':'~'}\  " Color 1: File name or ~ if empty
+set stl+=%2*%{&mod?'++':'\ \ '}\ \        " Color 2: Add ++ if modified
+set stl+=%=                               " Align right
+set stl+=%3*%{QuickfixCount('E')}         " Color 3: Errors
+set stl+=%4*%{QuickfixCount('W')}         " Color 4: Warnings
+set stl+=\ %5*\ %-6.(%l,%c%V%)            " Color 5: Row & column
+set stl+=\                                " Extra space
+hi def User1 ctermbg=18 ctermfg=20 cterm=bold
+hi def User2 ctermbg=18 ctermfg=1 cterm=bold
+hi def User3 ctermbg=18 ctermfg=1 cterm=bold
+hi def User4 ctermbg=18 ctermfg=3 cterm=bold
+hi def User5 ctermbg=18 ctermfg=20
+hi StatusLine ctermbg=18 ctermfg=20
+hi StatusLineNC ctermbg=18 ctermfg=8
+function! QuickfixCount(type)
+  let n = len(filter(getqflist(), { k,v -> v.type == a:type }))
+  return n == 0 ? '' : n . ' '
+endfunction
 
 " Completion, linting, and formatting
 let g:ale_fixers = {}
@@ -269,8 +304,10 @@ let g:ale_set_quickfix = 1
 let g:ale_set_highlights = 0
 let g:ale_sign_error = '>>'
 let g:ale_sign_warning = '>>'
-hi ALEErrorSign ctermfg=1 ctermbg=18
-hi ALEWarningSign ctermfg=3 ctermbg=18
+hi ALEErrorSign ctermfg=1 ctermbg=18 cterm=bold
+hi ALEWarningSign ctermfg=3 ctermbg=18 cterm=bold
+" EDIT ale#preview#Show: ignore stay_here arg
+" EDIT ale#util#ShowMessage: don't echo, always call ale#preview#Show
 packadd ale
 set omnifunc=ale#completion#OmniFunc
 inoremap <expr> <Tab> getline('.')[col('.')-2] =~ '^\_s*$' ? "\<Tab>" :
@@ -279,57 +316,38 @@ inoremap <expr> <S-Tab> getline('.')[col('.')-2] =~ '^\_s*$' ? "\<Tab>" :
   \ pumvisible() ? "\<C-p>" : "\<S-Tab>"
 nnoremap <silent> <space>j :ALEGoToDefinition<CR>
 nnoremap <silent> <space>k :ALEHover<CR>
+nnoremap <expr> <space>s ':ALESymbolSearch '
 nnoremap <silent> <space>f :ALEFix<CR>
-nnoremap <silent> <space>r :Sleuth<CR>:ALEResetBuffer<CR>:ALELint<CR>
-
-" Status line
-set stl=\                                 " Start with a space
-set stl+=%1*%{!empty(@%)?@%:&ro?'':'~'}\  " Color 1: File name or ~ if empty
-set stl+=%2*%{&mod?'++':'\ \ '}\ \        " Color 2: Add ++ if modified
-set stl+=%=                               " Align right
-set stl+=%3*%{ErrorCount()}               " Color 3: Errors
-set stl+=%4*%{WarningCount()}             " Color 4: Warnings
-set stl+=\ %5*\ %-6.(%l,%c%V%)            " Color 5: Row & column
-set stl+=\                                " Extra space
-hi def User1 ctermbg=18 ctermfg=20 cterm=bold
-hi def User2 ctermbg=18 ctermfg=1 cterm=bold
-hi def User3 ctermbg=18 ctermfg=1
-hi def User4 ctermbg=18 ctermfg=3
-hi def User5 ctermbg=18 ctermfg=20
-hi StatusLine ctermbg=18 ctermfg=20
-hi StatusLineNC ctermbg=18 ctermfg=8
-function! ErrorCount()
-  let counts = ale#statusline#Count(bufnr(''))
-  let n = counts.error + counts.style_error
-  return n == 0 ? '' : n . ' '
-endfunction
-function! WarningCount()
-  let l:counts = ale#statusline#Count(bufnr(''))
-  let n = counts.warning + counts.style_warning
-  return n == 0 ? '' : n . ' '
-endfunction
+nnoremap <silent> <space>r :Sleuth<CR>:ALEReset<CR>:ALELint<CR>
 autocmd User ALELintPost redrawstatus
+autocmd FileType ale-preview.message
+  \ silent! let &l:stl = '%1* ale-preview%=%5*(%l,%c%V%) '
 
 " Language pack
 let g:polyglot_disabled = ['sh']
 packadd vim-polyglot
 
-" Vimscript
-autocmd FileType vim nnoremap <silent><buffer> <space>k
-  \ :exe 'help '.scriptease#helptopic()<CR>
-
 " Golang
 autocmd FileType go setl colorcolumn=80
-let g:ale_fixers.go = ['gofmt', 'goimports']
-let g:ale_linters.go = ['gofmt', 'gopls']
+let g:ale_fixers.go = [executable('goimports') ? 'goimports' : 'gofmt']
+let g:ale_linters.go = [executable('gopls') ? 'gopls' : 'gofmt']
 
 " Rust
 autocmd FileType rust setl colorcolumn=100
 let g:ale_fixers.rust = ['rustfmt']
-let g:ale_linters.rust = ['cargo', 'analyzer']
+let g:ale_linters.rust = ['rls']
 let g:ale_rust_cargo_check_tests = 1
 let g:ale_rust_cargo_check_examples = 1
 let g:ale_rust_cargo_default_feature_behavior = 'all'
+let g:ale_rust_analyzer_config = {
+  \   'diagnostics': { 'disabled': ['inactive-code'] },
+  \ }
 
 " Python
 autocmd FileType python setl colorcolumn=79
+
+" Vimscript
+autocmd FileType vim nnoremap <silent><buffer> <space>k
+  \ :exe 'help '.scriptease#helptopic()<CR>
+let g:ale_fixers.vim = ['vint']
+let g:ale_linters.vim = ['vimls']

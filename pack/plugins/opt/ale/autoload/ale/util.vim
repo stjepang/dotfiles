@@ -24,9 +24,9 @@ function! ale#util#ShowMessage(string, ...) abort
     endif
 
     " We have to assume the user is using a monospace font.
-    if has('nvim') || (a:string !~? "\n" && len(a:string) < &columns)
-        execute 'echo a:string'
-    else
+    " if has('nvim') || (a:string !~? "\n" && len(a:string) < &columns)
+    "     execute 'echo a:string'
+    " else
         call ale#preview#Show(split(a:string, "\n"), extend(
         \   {
         \       'filetype': 'ale-preview.message',
@@ -34,7 +34,7 @@ function! ale#util#ShowMessage(string, ...) abort
         \   },
         \   l:options,
         \))
-    endif
+    " endif
 endfunction
 
 " A wrapper function for execute, so we can test executing some commands.

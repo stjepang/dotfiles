@@ -44,7 +44,7 @@ function! ale#preview#Show(lines, ...) abort
     endfor
 
     if get(l:options, 'stay_here')
-        wincmd p
+        " wincmd p
     endif
 endfunction
 

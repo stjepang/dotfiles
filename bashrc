@@ -51,7 +51,18 @@ fi
 # FZF options
 export FZF_TMUX=0
 export FZF_DEFAULT_OPTS='-e --preview-window=up:50% --bind=ctrl-/:toggle-preview'
+if [ -x "$(command -v rg)" ]; then
+  export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow --glob "!.git/*"'
+fi
+DEFAULT_COMMAND="highlight -O ansi -l {} || coderay {} || rougify {} || cat {}"
+CMD=${FZF_PREVIEW_COMMAND:-$DEFAULT_COMMAND}
 
-# Color theme
+# Color theme for ranger and fzf
+if [ -x "$(command -v highlight)" ]; then
+  export HIGHLIGHT_STYLE='base16/tomorrow-night'
+  export FZF_PREVIEW_COMMAND='highlight --base16=tomorrow-night -O xterm256 -l {} || coderay {} || rougify {} || cat {}'
+fi
+
+# Color theme for shell
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 source "$DIR/base16-shell/scripts/base16-tomorrow-night.sh"
