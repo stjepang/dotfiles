@@ -21,6 +21,7 @@ set wildmenu              " Better command completion
 set wildignorecase        " Ignore case in command completion
 set laststatus=2          " Always show status line
 set splitbelow            " Put new split window below current one
+set signcolumn=yes        " Always show sign column
 set completeopt=          " Clear completion options
 set completeopt+=menu     " Use popup menu
 set completeopt+=menuone  " Use popup menu even if only one match
@@ -335,7 +336,9 @@ let g:ale_linters.go = [executable('gopls') ? 'gopls' : 'gofmt']
 " Rust
 autocmd FileType rust setl colorcolumn=100
 let g:ale_fixers.rust = ['rustfmt']
-let g:ale_linters.rust = ['rls']
+let g:ale_linters.rust = ['analyzer']
+let g:ale_rust_rustfmt_options = '--edition 2018'
+let g:ale_rust_cargo_use_clippy = 0
 let g:ale_rust_cargo_check_tests = 1
 let g:ale_rust_cargo_check_examples = 1
 let g:ale_rust_cargo_default_feature_behavior = 'all'
